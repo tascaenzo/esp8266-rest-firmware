@@ -21,6 +21,7 @@
 
 #include "ApiManager.h"
 #include "BinaryStorage.h"
+#include "CronScheduler.h"
 #include "DeviceController.h"
 #include "EepromConfig.h"
 #include "WebPortal.h"
@@ -73,6 +74,9 @@ void setup() {
   /* Rest API initialization */
   apiInit();
 
+  /* Cron init */
+  cronSchedulerInit();
+
   systemBootstrapped = true;
   Serial.println("=== System bootstrap complete ===");
 }
@@ -89,4 +93,7 @@ void loop() {
 
   /* GPIO - read digital and analog inputs */
   deviceLoop();
+
+  /* Cron scheduler */
+  cronSchedulerLoop();
 }

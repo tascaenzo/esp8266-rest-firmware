@@ -1,5 +1,6 @@
 #include "ApiManager.h"
 #include <ArduinoJson.h>
+#include <CronScheduler.h>
 #include <DeviceController.h>
 #include <ESP8266WebServer.h>
 
@@ -70,9 +71,20 @@ void handleGetState() {
   device["rssi"] = WiFi.RSSI();
   device["uptime"] = millis() / 1000;
 
-  JsonObject pins = doc["pins"].to<JsonObject>();
+  // Cron jobs
+  CronJob *cronJobs = cronGetAll();
+  JsonObject crons = doc["cronJobs"].to<JsonObject>();
+  for (int i = 0; i < MAX_CRON_JOBS; i++) {
+    JsonObject cron = crons[String(i)].to<JsonObject>();
+    cron["state"] = cronJobs[i].active ? "Active" : "Disabled";
+    cron["cron"] = cronJobs[i].cron;
+    cron["action"] = cronActionToString(cronJobs[i].action);
+    cron["pin"] = gpioApiKey(cronJobs[i].pin);
+    cron["value"] = cronJobs[i].value;
+  }
 
   // GPIO 0..16
+  JsonObject pins = doc["pins"].to<JsonObject>();
   for (int pin = 0; pin <= 16; pin++) {
 
     if (!gpioIsValid(pin))
@@ -345,6 +357,170 @@ void handleReboot() {
 }
 
 /**
+ * GET /api/cron?id=N
+ */
+void handleGetCron() {
+  if (!api.hasArg("id")) {
+    sendError("missing id");
+    return;
+  }
+
+  int id = api.arg("id").toInt();
+  CronJob *job = cronGet(id);
+
+  if (!job) {
+    sendError("invalid id");
+    return;
+  }
+
+  JsonDocument doc;
+  doc["state"] = job->active ? "Active" : "Disabled";
+  doc["cron"] = job->cron;
+  doc["action"] = cronActionToString(job->action);
+  doc["pin"] = gpioApiKey(job->pin);
+  doc["value"] = job->value;
+
+  sendJSON(doc, 200);
+}
+
+/**
+ * PATCH /api/cron/set
+ * Body: { "cron": "...", "action": "set|toggle|reboot", "pin": "GPIOx",
+ * "value": n }
+ */
+void handleCronSet() {
+  if (!api.hasArg("plain")) {
+    sendError("missing body");
+    return;
+  }
+
+  JsonDocument doc;
+  if (deserializeJson(doc, api.arg("plain"))) {
+    sendError("invalid json");
+    return;
+  }
+
+  JsonObject obj = doc.as<JsonObject>();
+
+  if (obj["cron"].isNull() || obj["action"].isNull()) {
+    sendError("missing cron or action");
+    return;
+  }
+
+  CronJob job{};
+  job.active = true;
+  job.lastExecEpoch = 0;
+
+  strlcpy(job.cron, obj["cron"].as<const char *>(), sizeof(job.cron));
+
+  String action = obj["action"].as<String>();
+  action.toLowerCase();
+
+  if (action == "set") {
+    job.action = SetPinState;
+  } else if (action == "toggle") {
+    job.action = TogglePinState;
+  } else if (action == "reboot") {
+    job.action = Reboot;
+  } else {
+    sendError("invalid action");
+    return;
+  }
+
+  if (job.action == SetPinState) {
+
+    if (obj["pin"].isNull() || obj["value"].isNull()) {
+      sendError("missing pin or value");
+      return;
+    }
+
+    int pin = apiToGpio(obj["pin"].as<String>());
+    if (pin < 0) {
+      sendError("invalid pin");
+      return;
+    }
+
+    job.pin = pin;
+    job.value = obj["value"].as<int>();
+
+  } else if (job.action == TogglePinState) {
+
+    if (obj["pin"].isNull()) {
+      sendError("missing pin");
+      return;
+    }
+
+    int pin = apiToGpio(obj["pin"].as<String>());
+    if (pin < 0) {
+      sendError("invalid pin");
+      return;
+    }
+
+    job.pin = pin;
+    job.value = 0; // ignorato, ma inizializzato
+  }
+
+  // trova slot libero
+  for (int i = 0; i < MAX_CRON_JOBS; i++) {
+    CronJob *c = cronGet(i);
+    if (!c->active) {
+      if (!setCronJob(i, job)) {
+        sendError("save failed", 500);
+        return;
+      }
+
+      JsonDocument resp;
+      resp["success"] = true;
+      resp["id"] = i;
+      sendJSON(resp, 200);
+      return;
+    }
+  }
+
+  sendError("no free job slot");
+}
+
+/**
+ * DELETE /api/cron?id=N
+ */
+void handleDeleteCron() {
+  if (!api.hasArg("id")) {
+    sendError("missing id");
+    return;
+  }
+
+  int id = api.arg("id").toInt();
+  CronJob *job = cronGet(id);
+
+  if (!job) {
+    sendError("invalid id");
+    return;
+  }
+
+  job->active = false;
+  setCronJob(id, *job);
+
+  JsonDocument doc;
+  doc["success"] = true;
+  sendJSON(doc, 200);
+}
+
+/**
+ * DELETE /api/cron/clear
+ */
+void handleClearCron() {
+  for (int i = 0; i < MAX_CRON_JOBS; i++) {
+    CronJob *job = cronGet(i);
+    job->active = false;
+    setCronJob(i, *job);
+  }
+
+  JsonDocument doc;
+  doc["success"] = true;
+  sendJSON(doc, 200);
+}
+
+/**
  * Initialization Web server
  */
 bool apiInit() {
@@ -357,6 +533,10 @@ bool apiInit() {
   api.on("/api/config", HTTP_POST, handleConfig);
   api.on("/api/pin/set", HTTP_PATCH, handlePatchPin);
   api.on("/api/reboot", HTTP_POST, handleReboot);
+  api.on("/api/cron/set", HTTP_PATCH, handleCronSet);
+  api.on("/api/cron", HTTP_GET, handleGetCron);
+  api.on("/api/cron", HTTP_DELETE, handleDeleteCron);
+  api.on("/api/cron/clear", HTTP_DELETE, handleClearCron);
 
   return true;
 }

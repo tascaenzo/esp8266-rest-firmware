@@ -70,11 +70,12 @@ Cron Job Structure:
 
 ```cpp
 struct CronJob {
-  bool active;       // Job enabled/disabled
-  char cron[32];     // "min hour day month weekday"
-  char action[16];   // "set", "pwm", "reboot"
-  uint8_t pin;       // Target pin (if applicable)
-  int value;         // State/PWM value (if applicable)
+  uint8_t id;         // Cron Id
+  bool active;        // Job enabled/disabled
+  char cron[32];      // "min hour day month weekday"
+  CronAction action;  // "set", "pwm", "reboot"
+  uint8_t pin;        // Target pin (if applicable)
+  int value;          // State/PWM value (if applicable)
 };
 ```
 
@@ -126,16 +127,22 @@ Each pin entry includes:
     "rssi": -78,
     "uptime": 114
   },
-  "cron": [
-    {
-      "id": 0,
-      "active": true,
+  "cronJobs": {
+    "0": {
+      "state": "Active",
+      "cron": "30 18 * * *",
+      "action": "set",
+      "pin": "GPIO4",
+      "value": 1
+    },
+    "1": {
+      "state": "Disabled",
       "cron": "30 18 * * *",
       "action": "set",
       "pin": "GPIO4",
       "value": 1
     }
-  ],
+  },
   "pins": {
     "GPIO0": {
       "mode": "Disabled",
@@ -290,7 +297,7 @@ Examples:
 
 ---
 
-## 6.1 POST /api/cron/add
+## 6.1 PATCH /api/cron/set
 
 Adds a new Cron job.
 
@@ -307,45 +314,39 @@ Adds a new Cron job.
 
 ### Response
 
-```json
-{ "success": true, "id": 3 }
+```json{ "success": true, "id": 3 }
+
 ```
 
 ---
 
-## 6.2 GET /api/cron/list
+## 6.2 GET /api/cron?id=5
 
 Lists all 32 scheduled jobs.
 
 ```json
 {
-  "jobs": [
-    {
-      "id": 0,
-      "active": true,
-      "cron": "*/5 * * * *",
-      "action": "pwm",
-      "pin": "GPIO5",
-      "value": 128
-    },
-    { "id": 1, "active": false }
-  ]
+  "state": "Active",
+  "cron": "*/5 * * * *",
+  "action": "pwm",
+  "pin": "GPIO5",
+  "value": 128
 }
 ```
 
 ---
 
-## 6.3 POST /api/cron/delete
+## 6.3 DELTE /api/cron?id=5
 
-Deletes a job by ID.
+Disactive a job by ID.
 
 ```json
-{ "id": 4 }
+{ "id": 5 }
 ```
 
 ---
 
-## 6.4 POST /api/cron/clear
+## 6.4 DELETE /api/cron/clear
 
 Removes all jobs.
 

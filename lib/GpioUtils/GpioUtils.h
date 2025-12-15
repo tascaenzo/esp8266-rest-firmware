@@ -8,6 +8,10 @@
  */
 #define MAX_GPIO_PINS 18
 
+// gpioState[0..16] = GPIO digitali
+// gpioState[17]    = A0 (Analog pin)
+#define A0_INDEX 17
+
 /**
  * @brief Describes the hardware capabilities of a GPIO pin.
  *

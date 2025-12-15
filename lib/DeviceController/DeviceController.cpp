@@ -5,10 +5,6 @@
 #define STORAGE_PATH "/gpio_state.bin"
 #define FILE_SIZE sizeof(GpioConfig) * MAX_GPIO_PINS
 
-// gpioState[0..16] = GPIO digitali
-// gpioState[17]    = A0 (Analog pin)
-#define A0_INDEX 17
-
 static GpioConfig gpioState[MAX_GPIO_PINS];
 
 /**
