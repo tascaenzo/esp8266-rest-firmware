@@ -3,43 +3,91 @@
 #include <Arduino.h>
 
 /**
- * @brief Initializes the non-volatile memory used for credential storage.
+ * @brief Initializes the EEPROM emulation layer.
  *
- * This function prepares the EEPROM (or emulated EEPROM in flash)
- * for read and write operations. It must be called once at startup
- * before accessing any stored credentials.
- *
- * @return true if the initialization completed successfully, false otherwise
+ * Must be called once at startup before accessing
+ * any persistent configuration.
  */
 bool eepromInit();
 
+/* -------------------------------------------------------------------------- */
+/* WiFi credentials                                                           */
+/* -------------------------------------------------------------------------- */
+
 /**
- * @brief Loads the stored WiFi credentials from non-volatile memory.
+ * @brief Loads stored WiFi credentials.
  *
- * If valid credentials are found, they are copied into the provided
- * output parameters. If no valid data is present, the function fails.
- *
- * @param ssid Reference where the stored WiFi SSID will be copied
- * @param pass Reference where the stored WiFi password will be copied
- * @return true if valid credentials were successfully loaded, false otherwise
+ * @param ssid Output SSID
+ * @param pass Output password
+ * @return true if a non-empty SSID was found
  */
 bool loadWifiCredentials(String &ssid, String &pass);
 
 /**
- * @brief Saves the WiFi credentials into non-volatile memory.
+ * @brief Saves WiFi credentials to EEPROM.
  *
- * This function permanently stores the provided SSID and password
- * so they can be restored automatically at the next startup.
- *
- * @param ssid WiFi network name to store
- * @param pass WiFi network password to store
+ * @param ssid WiFi network name
+ * @param pass WiFi password
  */
-void saveWifiCredentials(const String &ssid, const String &pass);
+void setWifiCredentials(const String &ssid, const String &pass);
 
 /**
- * @brief Clears the stored WiFi credentials from non-volatile memory.
- *
- * After calling this function, no WiFi credentials will be available
- * for automatic connection at startup.
+ * @brief Clears stored WiFi credentials.
  */
 void clearWifiCredentials();
+
+/* -------------------------------------------------------------------------- */
+/* Authentication key                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief Enables or disables authentication api.
+ *
+ * @param flag true to enable, false to disable
+ */
+bool loadAuthFlag(bool *flag);
+
+/**
+ * @brief Enables or disables authentication.
+ *
+ * @param flag true to enable, false to disable
+ */
+bool setAuthFleg(bool flag);
+
+/**
+ * @brief Loads the authentication shared secret.
+ *
+ * @param key Output buffer (binary)
+ * @param length Buffer size (must be 32 bytes)
+ * @return true if a valid key was loaded
+ */
+bool loadAuthKey(uint8_t *key, size_t length);
+
+/**
+ * @brief Saves a new authentication shared secret.
+ *
+ * @param key Binary key
+ * @param length Key length (must be 32 bytes)
+ */
+void setAuthKey(const uint8_t *key, size_t length);
+
+/**
+ * @brief Clears the stored authentication key.
+ */
+void clearAuthKey();
+
+/* -------------------------------------------------------------------------- */
+/* Serial debug                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief Checks if serial debug output is enabled.
+ */
+bool loadDebugFlag(bool *flag);
+
+/**
+ * @brief Enables or disables serial debug output.
+ *
+ * @param flag true to enable, false to disable
+ */
+void setSerialDebugFlag(bool flag);

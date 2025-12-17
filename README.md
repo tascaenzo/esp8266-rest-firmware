@@ -1,94 +1,295 @@
 # 📘 ESP8266 GPIO Automation Firmware
 
-**REST-enabled firmware for ESP8266-based devices**
+**Secure, deterministic REST firmware for ESP8266-based devices**
 
-This project provides a feature-rich firmware for the ESP8266 (ESP-01, ESP-01S, ESP-12, NodeMCU, Wemos D1 Mini…) including:
+This firmware provides a lightweight, deterministic, and secure automation platform for ESP8266-based boards
+(ESP-01, ESP-01S, ESP-12, NodeMCU, Wemos D1 Mini, etc.).
 
-- A fully configurable **GPIO controller**
-- A simple **REST API** for home automation systems
-- A **WiFi configuration portal**
-- Persistent storage of configurations
-- Automatic boot-time restoration via flash memory
+It exposes a REST API to configure GPIOs, manage scheduled tasks, retrieve device status, and perform device setup, while remaining suitable for **low-memory embedded environments**.
 
-It is engineered to be lightweight, reliable, and modular.
+The firmware is designed to be:
 
----
-
-# ⚙️ Features
-
-### ✔️ REST API server
-
-Expose GPIO states, pin metadata and device info through a JSON API.
-
-### ✔️ Full GPIO configuration
-
-Supports:
-
-- Digital input
-- Input with pull-up
-- Digital output
-- PWM output
-- Analog input (`A0`)
-
-### ✔️ Auto-save configuration
-
-GPIO configurations persist using LittleFS.
-WiFi credentials are stored in EEPROM.
-
-### ✔️ Captive WiFi portal
-
-If no saved WiFi credentials exist, the ESP starts an AP and presents a setup page.
-
-### ✔️ Centralized hardware abstraction
-
-`GpioConfig` and `DeviceController` provide a stable GPIO backend.
-
-### ✔️ Cron Scheduler (NEW)
-
-The firmware includes a 32-slot Cron Scheduler:
-
-- Supports standard 5-field cron expressions
-- Executes GPIO set/pwm actions or system reboot
-- Jobs are stored persistently
-- Jobs are automatically listed inside GET /api/state
+- predictable
+- replay-safe
+- TLS-free
+- easy to integrate with custom clients and automation systems
 
 ---
 
-# 🧱 Data Model
+# ⚙️ Key Features
 
-Each GPIO is represented internally using:
+## ✔ REST API Server
 
-```cpp
-struct GpioConfig {
-  uint8_t pin;     // GPIO number (0–16 or A0)
-  PinMode mode;    // Disabled, Input, InputPullup, Output, Pwm, Analog
-  int state;       // Last known logic level or analog/PWM value
-};
-```
-
-Cron Job Structure:
-
-```cpp
-struct CronJob {
-  uint8_t id;         // Cron Id
-  bool active;        // Job enabled/disabled
-  char cron[32];      // "min hour day month weekday"
-  CronAction action;  // "set", "pwm", "reboot"
-  uint8_t pin;        // Target pin (if applicable)
-  int value;          // State/PWM value (if applicable)
-};
-```
-
-This structure maps directly to the REST API.
+- JSON-based HTTP API
+- Stateless request model
+- Designed for embedded automation clients
+- Deterministic behavior (bounded memory & execution)
 
 ---
 
-# 📡 REST API Documentation
+## ✔ Secure Authentication (HMAC + Nonce)
 
-API root:
+- Optional authentication layer
+- Challenge–response mechanism
+- HMAC-SHA256 signatures
+- One-time nonces (anti-replay)
+- No passwords transmitted
+- No TLS required
+
+Authentication can be **enabled or disabled at runtime** using a dedicated setup API.
+
+---
+
+## ✔ GPIO Management
+
+Supported pin modes:
+
+- Disabled
+- Digital Input
+- Input with Pull-up
+- Digital Output
+- PWM Output
+- Analog Input (`A0`)
+
+Pin capabilities and safety constraints are enforced at runtime.
+
+---
+
+## ✔ Persistent Configuration
+
+- GPIO configuration stored in **LittleFS**
+- WiFi credentials stored in **EEPROM**
+- Authentication key and system flags stored in **EEPROM**
+- Automatic restore on reboot
+
+---
+
+## ✔ WiFi Captive Portal
+
+- If no WiFi credentials are present, the device starts in AP mode
+- A configuration page is served via embedded web portal
+- Used for initial provisioning or recovery
+
+---
+
+## ✔ Cron Scheduler
+
+- 32 persistent cron job slots
+- Standard 5-field cron syntax
+- Supported actions:
+
+  - Set GPIO state
+  - Toggle GPIO
+  - Set PWM value
+  - Device reboot
+
+- Cron jobs are included in `/api/state`
+
+---
+
+# 🔐 Authentication & Security Model
+
+## Overview
+
+The firmware implements a **nonce-based HMAC authentication mechanism** tailored for embedded devices.
+
+### Design Goals
+
+- Avoid TLS overhead
+- Prevent credential leakage
+- Prevent replay attacks
+- Keep RAM usage predictable
+- No dynamic allocation during auth verification
+
+---
+
+## Authentication Flow
+
+### 1️⃣ Request a challenge (public endpoint)
 
 ```
-http://<device-ip>/api/...
+GET /api/auth/challenge
+```
+
+This endpoint is **never authenticated**.
+
+### Response
+
+```json
+{
+  "nonce": 1933383571
+}
+```
+
+Nonce properties:
+
+- Generated using a secure random source
+- Bound to the client IP
+- Has a limited lifetime
+- Can be used **only once**
+
+---
+
+### 2️⃣ Compute the signature
+
+For every protected request, the client computes:
+
+```
+HMAC_SHA256(
+  nonce + uri + payload,
+  AUTH_SECRET
+)
+```
+
+#### Signature Components
+
+| Component     | Description                             |
+| ------------- | --------------------------------------- |
+| `nonce`       | Value returned by `/api/auth/challenge` |
+| `uri`         | Request path (e.g. `/api/state`)        |
+| `payload`     | Raw request body (empty for GET)        |
+| `AUTH_SECRET` | Shared secret stored in EEPROM          |
+
+⚠️ The string must match **byte-for-byte**.
+
+---
+
+### 3️⃣ Send authenticated request
+
+Required headers:
+
+| Header    | Description             |
+| --------- | ----------------------- |
+| `X-Nonce` | Nonce value             |
+| `X-Auth`  | Hex-encoded HMAC-SHA256 |
+
+---
+
+## Payload Rules (CRITICAL)
+
+- **GET requests** → payload is an empty string
+- **POST / PATCH requests** → payload is the raw JSON body
+- Any whitespace or JSON reformatting breaks the signature
+
+---
+
+## Authentication Errors
+
+```json
+{ "error": "unauthorized" }
+```
+
+Returned on:
+
+- Missing headers
+- Invalid nonce
+- Expired nonce
+- Signature mismatch
+- Replay attempt
+
+HTTP status: **401**
+
+---
+
+# 🔧 Device Setup & Provisioning API
+
+This API is used to configure **system-level settings**.
+
+It is intended for:
+
+- first installation
+- recovery
+- enabling authentication
+- toggling serial debug output
+
+---
+
+## Access Rules
+
+| Authentication state | Setup API access        |
+| -------------------- | ----------------------- |
+| Auth disabled        | Public                  |
+| Auth enabled         | Requires authentication |
+
+---
+
+## POST /api/setup
+
+Configures system flags and optionally enables authentication.
+
+### Request Body
+
+```json
+{
+  "auth": true,
+  "serialDebug": false
+}
+```
+
+### Fields
+
+| Field         | Type | Description                           |
+| ------------- | ---- | ------------------------------------- |
+| `auth`        | bool | Enable or disable API authentication  |
+| `serialDebug` | bool | Enable or disable serial debug output |
+
+---
+
+### Behavior
+
+#### Authentication flag
+
+- If `auth` is set to `true` **and authentication was disabled**:
+
+  - A new random authentication key is generated
+  - The key is stored in EEPROM
+  - Authentication is enabled
+  - The key is returned **once** in the response
+
+- If `auth` is set to `false`:
+
+  - Authentication is disabled
+  - Stored key is erased
+
+#### Serial debug flag
+
+- Stored persistently
+- Affects runtime logging behavior
+
+---
+
+### Example Response (auth enabled)
+
+```json
+{
+  "auth": true,
+  "serialDebug": false,
+  "authKey": "7f9c4e2d8a0b1c6e9d4a3f8b2c7e1d9a"
+}
+```
+
+⚠️ The authentication key is returned **only once**.
+If lost, authentication must be disabled and re-enabled.
+
+---
+
+### Example Response (auth disabled)
+
+```json
+{
+  "auth": false,
+  "serialDebug": true
+}
+```
+
+---
+
+# 📡 REST API
+
+Base URL:
+
+```
+http://<device-ip>/api
 ```
 
 All responses are JSON.
@@ -125,6 +326,8 @@ Each pin entry includes:
     "ip": "192.168.1.8",
     "chip": 12970503,
     "rssi": -78,
+    "serialDebug": true,
+    "auth": true,
     "uptime": 114
   },
   "cronJobs": {
@@ -134,45 +337,14 @@ Each pin entry includes:
       "action": "set",
       "pin": "GPIO4",
       "value": 1
-    },
-    "1": {
-      "state": "Disabled",
-      "cron": "30 18 * * *",
-      "action": "set",
-      "pin": "GPIO4",
-      "value": 1
     }
   },
   "pins": {
-    "GPIO0": {
-      "mode": "Disabled",
-      "state": 0,
-      "capabilities": ["Input", "InputPullup", "Output", "Pwm"],
-      "safety": "critical"
-    },
-    "GPIO2": {
-      "mode": "Disabled",
-      "state": 0,
-      "capabilities": ["Input", "InputPullup", "Output", "Pwm"],
-      "safety": "critical"
-    },
     "GPIO4": {
-      "mode": "Disabled",
-      "state": 0,
+      "mode": "Output",
+      "state": 1,
       "capabilities": ["Input", "InputPullup", "Output", "Pwm"],
-      "safety": "safe"
-    },
-    "GPIO16": {
-      "mode": "Disabled",
-      "state": 0,
-      "capabilities": ["Input", "Output"],
-      "safety": "warn"
-    },
-    "A0": {
-      "mode": "Analog",
-      "state": 4,
-      "capabilities": ["Analog"],
-      "safety": "safe"
+      "safety": "Safe"
     }
   }
 }
@@ -180,7 +352,7 @@ Each pin entry includes:
 
 ---
 
-# 2. GET /api/pin?id=XX
+## GET /api/pin?id=GPIOx 🔐
 
 Returns configuration and state for a single pin.
 
@@ -213,7 +385,7 @@ GET /api/pin?id=GPIO4
 
 ---
 
-# 3. POST /api/config
+## POST /api/config 🔐
 
 Replaces the **entire GPIO configuration table**.
 
@@ -242,16 +414,9 @@ Pins omitted in the JSON are automatically set to **Disabled**.
 
 ---
 
-# 4. PATCH /api/pin/set
+## PATCH /api/pin/set 🔐
 
-Sets the **digital output state** of a configured Output pin.
-
-```json
-{
-  "mode": "Output",
-  "state": 1
-}
-```
+Updates pin mode and/or state.
 
 ---
 
@@ -279,25 +444,9 @@ Restarts the ESP.
 
 ---
 
-# 🕒 Cron Scheduler API (NEW)
+# 🕒 Cron Scheduler API 🔐
 
-The scheduler supports **32 job slots** with persistent storage.
-
-Cron syntax:
-
-```
-minute hour day month weekday
-```
-
-Examples:
-
-- `"*/10 * * * *"` → every 10 minutes
-- `"0 7 * * 1"` → every Monday at 07:00
-- `"30 18 * * *"` → every day at 18:30
-
----
-
-## 6.1 PATCH /api/cron/set
+## PATCH /api/cron/set
 
 Adds a new Cron job.
 
@@ -310,12 +459,6 @@ Adds a new Cron job.
   "pin": "GPIO4",
   "value": 1
 }
-```
-
-### Response
-
-```json{ "success": true, "id": 3 }
-
 ```
 
 ---
@@ -346,7 +489,7 @@ Disactive a job by ID.
 
 ---
 
-## 6.4 DELETE /api/cron/clear
+## DELETE /api/cron/clear
 
 Removes all jobs.
 
@@ -356,52 +499,34 @@ Removes all jobs.
 
 ---
 
-# 🛑 Common Error Codes
+# 🛑 Error Handling
 
-| Condition          | HTTP | JSON                               |
-| ------------------ | ---- | ---------------------------------- |
-| Missing parameter  | 400  | `{ "error": "missing id" }`        |
-| Invalid pin        | 400  | `{ "error": "invalid pin" }`       |
-| Invalid mode       | 400  | `{ "error": "invalid mode" }`      |
-| Invalid cron       | 400  | `{ "error": "invalid cron" }`      |
-| PWM not supported  | 400  | `{ "error": "PWM not supported" }` |
-| No free slot       | 400  | `{ "error": "no free job slot" }`  |
-| Save/Apply failure | 500  | `{ "success": false }`             |
+| Condition         | HTTP | Response                           |
+| ----------------- | ---- | ---------------------------------- |
+| Missing parameter | 400  | `{ "error": "missing parameter" }` |
+| Invalid value     | 400  | `{ "error": "invalid value" }`     |
+| Unauthorized      | 401  | `{ "error": "unauthorized" }`      |
+| Internal error    | 500  | `{ "success": false }`             |
 
 ---
 
-# 🚀 Build Instructions
+# 🔒 Security Notes
 
-```bash
-pio run
-```
-
-Upload:
-
-```bash
-pio run -t upload
-```
-
-Serial monitor:
-
-```bash
-pio device monitor
-```
+- One nonce = one request
+- Nonces are IP-bound
+- Nonces are invalidated immediately
+- Constant-time HMAC comparison
+- No heap allocation during auth verification
+- EEPROM initialized using a magic value
 
 ---
 
-# 🔧 Flashing Notes (ESP-01 / ESP-01S)
-
-- Pull **GPIO0 → GND** during reset to enter flash mode
-- Typical baudrate: **115200**
-
----
-
-# 🧩 Recommended Project Structure
+# 🧩 Project Structure
 
 ```
 lib/
   ApiManager/
+  Auth/
   BinaryStorage/
   CronScheduler/
   DeviceController/

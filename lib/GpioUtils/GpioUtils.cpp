@@ -228,3 +228,41 @@ String pinSafetyString(uint8_t pin) {
   // UART pins, GPIO16, or anything unusual
   return "Warn";
 }
+
+/**
+ * Utility: Convert API pin ID to GPIO number
+ * Returns -1 if invalid
+ */
+int apiToGpio(String id) {
+  id.trim();
+  id.toUpperCase();
+
+  if (id == "A0")
+    return A0;
+
+  if (id.startsWith("GPIO"))
+    id = id.substring(4);
+
+  if (id.length() == 0)
+    return -1;
+
+  for (char c : id) {
+    if (!isDigit(c))
+      return -1;
+  }
+
+  int pin = id.toInt();
+  if (!gpioIsValid(pin))
+    return -1;
+
+  return pin;
+}
+
+/**
+ * Utility: Convert GPIO number to API pin ID
+ */
+String gpioApiKey(int pin) {
+  if (pin == A0)
+    return "A0";
+  return "GPIO" + String(pin);
+}

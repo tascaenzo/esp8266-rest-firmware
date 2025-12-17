@@ -137,3 +137,13 @@ PinMode stringToPinMode(const String &modeStr);
  * @return Safety description string ("Safe", "BootSensitive", "Warn")
  */
 String pinSafetyString(uint8_t pin);
+
+/**
+ * @brief Converts an API pin identifier to a GPIO number.
+ */
+int apiToGpio(String id);
+
+/**
+ * @brief Converts a GPIO number to an API pin identifier.
+ */
+String gpioApiKey(int pin);

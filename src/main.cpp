@@ -20,6 +20,7 @@
 #include <ArduinoJson.h>
 
 #include "ApiManager.h"
+#include "Auth.h"
 #include "BinaryStorage.h"
 #include "CronScheduler.h"
 #include "DeviceController.h"
@@ -70,6 +71,9 @@ void setup() {
     Serial.println("No WiFi credentials → starting captive portal.");
     portalStart();
   }
+
+  /* Auth config for ApiMenager */
+  authInit();
 
   /* Rest API initialization */
   apiInit();

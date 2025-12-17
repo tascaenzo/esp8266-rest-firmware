@@ -77,7 +77,7 @@ bool portalStart() {
 
   // Dual mode allows both AP mode and WiFi scanning
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP("SonoffSetup", "12345678");
+  WiFi.softAP("ESP8266-Setup", "12345678");
 
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
@@ -90,7 +90,7 @@ bool portalStart() {
     String ssid = server.arg("ssid");
     String pass = server.arg("pass");
 
-    saveWifiCredentials(ssid, pass);
+    setWifiCredentials(ssid, pass);
 
     server.send(200, "text/html",
                 "<html><body>"
