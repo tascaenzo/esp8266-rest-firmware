@@ -15,7 +15,7 @@ bool apiInit() {
   api.collectHeaders("X-Nonce", "X-Auth");
 
   api.begin();
-  debugPrintln(F("REST API started on port 80"));
+  debugPrintln(F("[API]"), F("REST API started on port 80"));
 
   api.on("/api/auth/challenge", HTTP_GET, handleAuthChallenge);
   api.on("/api/setup", HTTP_POST, handleSetup);

@@ -7,6 +7,11 @@
 
 namespace {
 bool debugActive = false;
+
+template <typename T> void printTag(const T &tag) {
+  Serial.print(tag);
+  Serial.print(' ');
+}
 }
 
 void debugInit() {
@@ -43,6 +48,31 @@ void debugPrint(const __FlashStringHelper *message) {
   Serial.print(message);
 }
 
+void debugPrintln(const String &tag, const String &message) {
+  if (!debugActive)
+    return;
+
+  printTag(tag);
+  Serial.println(message);
+}
+
+void debugPrintln(const __FlashStringHelper *tag,
+                  const __FlashStringHelper *message) {
+  if (!debugActive)
+    return;
+
+  printTag(tag);
+  Serial.println(message);
+}
+
+void debugPrintln(const __FlashStringHelper *tag, const String &message) {
+  if (!debugActive)
+    return;
+
+  printTag(tag);
+  Serial.println(message);
+}
+
 void debugPrintln(const String &message) {
   if (!debugActive)
     return;
@@ -67,5 +97,19 @@ void debugPrintf(const char *format, ...) {
   vsnprintf(buffer, sizeof(buffer), format, args);
   va_end(args);
 
+  Serial.println(buffer);
+}
+
+void debugPrintf(const __FlashStringHelper *tag, const char *format, ...) {
+  if (!debugActive)
+    return;
+
+  char buffer[196];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  printTag(tag);
   Serial.println(buffer);
 }

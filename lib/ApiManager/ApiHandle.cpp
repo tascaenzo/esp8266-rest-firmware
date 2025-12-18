@@ -387,7 +387,7 @@ void handleReboot() {
   doc["rebooting"] = true;
   sendJSON(doc, 200);
 
-  debugPrintln(F("Rebooting - /api/reboot"));
+  debugPrintln(F("[API]"), F("Rebooting - /api/reboot"));
   api.client().flush();
   delay(100);
   ESP.restart();

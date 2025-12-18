@@ -28,12 +28,28 @@ void debugPrint(const String &message);
 void debugPrint(const __FlashStringHelper *message);
 
 /**
- * @brief Prints a message with newline when debug is enabled.
+ * @brief Prints a tagged message with newline when debug is enabled.
+ */
+void debugPrintln(const String &tag, const String &message);
+
+/**
+ * @brief Prints a tagged flash-resident message with newline when debug is enabled.
+ */
+void debugPrintln(const __FlashStringHelper *tag,
+                  const __FlashStringHelper *message);
+
+/**
+ * @brief Prints a tagged message with newline when debug is enabled.
+ */
+void debugPrintln(const __FlashStringHelper *tag, const String &message);
+
+/**
+ * @brief Prints an untagged message with newline when debug is enabled.
  */
 void debugPrintln(const String &message);
 
 /**
- * @brief Prints a flash-resident string with newline when debug is enabled.
+ * @brief Prints an untagged flash-resident string with newline when debug is enabled.
  */
 void debugPrintln(const __FlashStringHelper *message);
 
@@ -41,3 +57,8 @@ void debugPrintln(const __FlashStringHelper *message);
  * @brief Formatted print with newline when debug is enabled.
  */
 void debugPrintf(const char *format, ...);
+
+/**
+ * @brief Formatted tagged print with newline when debug is enabled.
+ */
+void debugPrintf(const __FlashStringHelper *tag, const char *format, ...);

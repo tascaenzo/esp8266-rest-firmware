@@ -14,7 +14,7 @@ bool wifiInit() {
   WiFi.disconnect();
   delay(100);
 
-  debugPrintln(F("WiFi initialized in STA mode."));
+  debugPrintln(F("[WiFi]"), F("WiFi initialized in STA mode."));
   return true;
 }
 
@@ -26,8 +26,7 @@ bool wifiConnect(const String &ssid, const String &pass) {
   if (ssid.length() == 0)
     return false;
 
-  debugPrint("Connecting to WiFi network: ");
-  debugPrintln(ssid);
+  debugPrintln(F("[WiFi]"), "Connecting to WiFi network: " + ssid);
 
   WiFi.begin(ssid.c_str(), pass.c_str());
 
@@ -37,17 +36,18 @@ bool wifiConnect(const String &ssid, const String &pass) {
   // Wait until connected or timeout expires
   while (WiFi.status() != WL_CONNECTED && millis() - start < timeout) {
     delay(250);
-    debugPrint(".");
+    debugPrint(F("."));
   }
-  debugPrintln("");
+  debugPrintln(F("[WiFi]"), String(""));
 
   if (WiFi.status() == WL_CONNECTED) {
-    debugPrint("WiFi connected successfully. IP address: ");
-    debugPrintln(WiFi.localIP().toString());
+    debugPrintln(F("[WiFi]"),
+                 "WiFi connected successfully. IP address: " +
+                     WiFi.localIP().toString());
     return true;
   }
 
-  debugPrintln(F("WiFi connection failed."));
+  debugPrintln(F("[WiFi]"), F("WiFi connection failed."));
   return false;
 }
 

@@ -61,16 +61,18 @@ void setup() {
 
   /* Load WiFi credentials from EEPROM */
   if (loadWifiCredentials(WIFI_SSID, WIFI_PASS)) {
-    debugPrintln("Stored WiFi credentials found: " + WIFI_SSID);
+    debugPrintln(F("[BOOT]"), "Stored WiFi credentials found: " + WIFI_SSID);
 
     if (!wifiConnect(WIFI_SSID, WIFI_PASS)) {
-      debugPrintln("WiFi connection failed → starting captive portal.");
+      debugPrintln(F("[BOOT]"),
+                   F("WiFi connection failed → starting captive portal."));
       portalStart();
     } else {
-      debugPrintln("WiFi connected successfully!");
+      debugPrintln(F("[BOOT]"), F("WiFi connected successfully!"));
     }
   } else {
-    debugPrintln("No WiFi credentials → starting captive portal.");
+    debugPrintln(F("[BOOT]"),
+                 F("No WiFi credentials → starting captive portal."));
     portalStart();
   }
 
@@ -84,7 +86,7 @@ void setup() {
   cronSchedulerInit();
 
   systemBootstrapped = true;
-  debugPrintln("=== System bootstrap complete ===");
+  debugPrintln(F("[BOOT]"), F("=== System bootstrap complete ==="));
 }
 
 void loop() {
