@@ -1,0 +1,110 @@
+ /* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+/* Panel */
+.panel {
+  background: var(--panel);
+  width: 420px;
+  max-width: 90%;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Panel header */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Panel body */
+.panel-body {
+  padding: 16px;
+}
+
+.panel-body label {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.panel-body input {
+  width: 100%;
+  padding: 8px;
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 4px;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.status {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.status.success {
+  color: green;
+}
+
+.status.error {
+  color: var(--danger);
+}
+
+.status.info {
+  color: var(--muted);
+}
+
+/* Icon button */
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* ===========================
+   Button system
+   =========================== */
+
+button {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: var(--btn-bg, #1f2933);
+  color: var(--btn-fg, #e5e7eb);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+button:hover {
+  background: var(--btn-bg-hover, #374151);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
