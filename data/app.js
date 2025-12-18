@@ -19,7 +19,9 @@ const els = {
   saveAuthKey: document.getElementById("save-auth-key"),
   clearAuthKey: document.getElementById("clear-auth-key"),
   refreshState: document.getElementById("refresh-state"),
+  refreshAll: document.getElementById("refresh-all"),
   stateGrid: document.getElementById("state-grid"),
+  stateSummary: document.getElementById("state-summary"),
   gpioList: document.getElementById("gpio-list"),
   cronList: document.getElementById("cron-list"),
   refreshGpio: document.getElementById("refresh-gpio"),
@@ -30,6 +32,10 @@ const els = {
   cronValue: document.getElementById("cron-value"),
   addCron: document.getElementById("add-cron"),
   logOutput: document.getElementById("log-output"),
+  curlNonce: document.getElementById("curl-nonce"),
+  curlState: document.getElementById("curl-state"),
+  curlPin: document.getElementById("curl-pin"),
+  curlCron: document.getElementById("curl-cron"),
 };
 
 let lastState = null;
@@ -159,6 +165,15 @@ function renderState(state) {
   if (typeof device.serialDebug === "boolean") {
     els.setupSerial.checked = !!device.serialDebug;
   }
+
+  const pinCount = Object.keys(state?.pins || {}).length;
+  const cronCount = Object.keys(state?.cronJobs || {}).length;
+  const summary = [
+    `Pins: ${pinCount || 0}`,
+    `Cron: ${cronCount || 0}`,
+    device.auth ? "Auth attiva" : "Auth disabilitata",
+  ];
+  els.stateSummary.innerHTML = summary.map((text) => `<span class="summary-item">${text}</span>`).join("");
 }
 
 function renderPins(state) {
@@ -282,11 +297,12 @@ function renderCron(state) {
       <div class="cron-header">
         <div>
           <h3>Cron #${id}</h3>
-          <div class="small-text">${job.cron || "?"}</div>
+          <div class="small-text">Spec: ${job.cron || "?"}</div>
+          <div class="small-text">Pin: ${job.pin ?? "—"} · Value: ${job.value ?? "—"}</div>
         </div>
         <div class="pill ${job.state === "Active" ? "pill-success" : "pill-warn"}">${job.state || "Unknown"}</div>
       </div>
-      <div class="small-text">Action: ${job.action || "?"} · Pin: ${job.pin ?? "—"} · Value: ${job.value ?? "—"}</div>
+      <div class="small-text">Action: ${job.action || "?"}</div>
       <div class="actions">
         <button class="danger" ${hasKey ? "" : "disabled"} data-id="${id}">Delete</button>
       </div>
@@ -404,9 +420,66 @@ function initAuthControls() {
   });
 }
 
+function renderCurlExamples() {
+  const nonceCmd = `curl -s ${BASE_URL}/api/auth/challenge`;
+  const stateCmd = [
+    `nonce=$( ${nonceCmd} | jq -r .nonce )`,
+    `sig=$(python - <<'PY'`,
+    `import hmac, hashlib, os`,
+    `key=os.environ.get("AUTH_KEY","").strip()`,
+    `nonce=os.environ.get("nonce","") or "${'$'}{nonce}"`,
+    `payload=""`,
+    `msg=(nonce+"/api/state"+payload).encode()`,
+    `print(hmac.new(bytes.fromhex(key), msg, hashlib.sha256).hexdigest())`,
+    `PY`,
+    `)`,
+    `curl -H "X-Nonce: ${'$'}nonce" -H "X-Auth: ${'$'}sig" ${BASE_URL}/api/state`,
+  ].join("\n");
+
+  const pinCmd = [
+    `nonce=$( ${nonceCmd} | jq -r .nonce )`,
+    `body='{\"id\":\"GPIO4\",\"mode\":\"Output\",\"state\":1}'`,
+    `sig=$(python - <<'PY'`,
+    `import hmac, hashlib, os`,
+    `key=os.environ.get("AUTH_KEY","").strip()`,
+    `nonce=os.environ.get("nonce","") or "${'$'}{nonce}"`,
+    `body='${'$'}{body}'`,
+    `msg=(nonce+"/api/pin/set"+body).encode()`,
+    `print(hmac.new(bytes.fromhex(key), msg, hashlib.sha256).hexdigest())`,
+    `PY`,
+    `)`,
+    `curl -X PATCH -H "Content-Type: application/json" \\`,
+    `  -H "X-Nonce: ${'$'}nonce" -H "X-Auth: ${'$'}sig" \\`,
+    `  -d '${'$'}body' ${BASE_URL}/api/pin/set`,
+  ].join("\n");
+
+  const cronCmd = [
+    `nonce=$( ${nonceCmd} | jq -r .nonce )`,
+    `body='{\"cron\":\"*/5 * * * *\",\"action\":\"toggle\",\"pin\":\"GPIO4\"}'`,
+    `sig=$(python - <<'PY'`,
+    `import hmac, hashlib, os`,
+    `key=os.environ.get("AUTH_KEY","").strip()`,
+    `nonce=os.environ.get("nonce","") or "${'$'}{nonce}"`,
+    `body='${'$'}{body}'`,
+    `msg=(nonce+"/api/cron/set"+body).encode()`,
+    `print(hmac.new(bytes.fromhex(key), msg, hashlib.sha256).hexdigest())`,
+    `PY`,
+    `)`,
+    `curl -X PATCH -H "Content-Type: application/json" \\`,
+    `  -H "X-Nonce: ${'$'}nonce" -H "X-Auth: ${'$'}sig" \\`,
+    `  -d '${'$'}body' ${BASE_URL}/api/cron/set`,
+  ].join("\n");
+
+  els.curlNonce.textContent = nonceCmd;
+  els.curlState.textContent = stateCmd;
+  els.curlPin.textContent = pinCmd;
+  els.curlCron.textContent = cronCmd;
+}
+
 function initEventListeners() {
   els.applySetup.addEventListener("click", applySetup);
   els.refreshState.addEventListener("click", fetchState);
+  els.refreshAll.addEventListener("click", fetchState);
   els.refreshGpio.addEventListener("click", fetchState);
   els.refreshCron.addEventListener("click", fetchState);
   els.addCron.addEventListener("click", addCronJob);
@@ -416,6 +489,7 @@ function init() {
   els.baseUrl.textContent = BASE_URL;
   initAuthControls();
   initEventListeners();
+  renderCurlExamples();
   fetchState();
 }
 

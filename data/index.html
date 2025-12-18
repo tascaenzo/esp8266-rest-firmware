@@ -10,7 +10,7 @@
   <header class="topbar">
     <div>
       <h1>ESP8266 Control Panel</h1>
-      <p class="subtitle">Static client · HMAC auth · REST API</p>
+      <p class="subtitle">Interfaccia leggera · HMAC · REST</p>
     </div>
     <div class="status-badges">
       <span id="auth-status" class="badge badge-warn">Auth key: missing</span>
@@ -22,7 +22,7 @@
     <section class="card" id="setup-section">
       <div class="card-header">
         <h2>Setup</h2>
-        <p>Enable/disable authentication and serial debug.</p>
+        <p>Abilita/disabilita autenticazione e serial debug.</p>
       </div>
       <div class="form-row">
         <label for="setup-auth">Authentication enabled</label>
@@ -48,7 +48,7 @@
     <section class="card" id="auth-section">
       <div class="card-header">
         <h2>Authentication key</h2>
-        <p>Store or clear the shared secret.</p>
+        <p>Memorizza o cancella il segreto condiviso.</p>
       </div>
       <label for="auth-key-input">Auth key (hex, 64 chars)</label>
       <input id="auth-key-input" type="text" placeholder="Paste auth key" autocomplete="off">
@@ -56,18 +56,22 @@
         <button id="save-auth-key" class="primary">Save key</button>
         <button id="clear-auth-key" class="danger">Clear key</button>
       </div>
-      <div class="small-text">Key is stored in browser localStorage.</div>
+      <div class="small-text">La chiave è salvata nel browser (localStorage).</div>
     </section>
 
     <section class="card" id="state-section">
       <div class="card-header">
         <div class="card-header-row">
           <h2>Device state</h2>
-          <button id="refresh-state" class="ghost">Refresh</button>
+          <div class="card-actions">
+            <button id="refresh-state" class="ghost">Refresh</button>
+            <button id="refresh-all" class="ghost">Refresh all</button>
+          </div>
         </div>
-        <p>Device info and flags.</p>
+        <p>Informazioni di rete, uptime e flag.</p>
       </div>
       <div id="state-grid" class="info-grid"></div>
+      <div id="state-summary" class="summary-bar"></div>
     </section>
 
     <section class="card" id="gpio-section">
@@ -76,7 +80,7 @@
           <h2>GPIO control</h2>
           <button id="refresh-gpio" class="ghost">Refresh</button>
         </div>
-        <p>View and control pin modes and states.</p>
+        <p>Modalità, stato e PWM per ogni pin.</p>
       </div>
       <div id="gpio-list" class="list"></div>
     </section>
@@ -87,7 +91,7 @@
           <h2>Cron jobs</h2>
           <button id="refresh-cron" class="ghost">Refresh</button>
         </div>
-        <p>Schedule actions on GPIO pins.</p>
+        <p>Programma azioni sui pin.</p>
       </div>
       <div id="cron-list" class="list"></div>
       <div class="divider"></div>
@@ -116,10 +120,37 @@
       <button id="add-cron" class="primary">Add cron job</button>
     </section>
 
+    <section class="card" id="docs-section">
+      <div class="card-header">
+        <h2>Documentazione rapida</h2>
+        <p>Esempi curl e note sull'autenticazione.</p>
+      </div>
+      <div class="doc-block">
+        <h3>1) Richiedi nonce (pubblico)</h3>
+        <pre><code id="curl-nonce"></code></pre>
+      </div>
+      <div class="doc-block">
+        <h3>2) Firma richiesta</h3>
+        <p class="small-text">Signature = HMAC_SHA256(nonce + uri + payload, authKey)</p>
+      </div>
+      <div class="doc-block">
+        <h3>3) GET stato (con firma)</h3>
+        <pre><code id="curl-state"></code></pre>
+      </div>
+      <div class="doc-block">
+        <h3>4) PATCH pin</h3>
+        <pre><code id="curl-pin"></code></pre>
+      </div>
+      <div class="doc-block">
+        <h3>5) PATCH cron</h3>
+        <pre><code id="curl-cron"></code></pre>
+      </div>
+    </section>
+
     <section class="card" id="log-section">
       <div class="card-header">
         <h2>Activity log</h2>
-        <p>Recent actions and errors.</p>
+        <p>Azioni recenti ed errori.</p>
       </div>
       <div id="log-output" class="log"></div>
     </section>
