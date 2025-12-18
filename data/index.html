@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP8266 Control Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>ESP8266 Control Panel</h1>
+      <p class="subtitle">Static client · HMAC auth · REST API</p>
+    </div>
+    <div class="status-badges">
+      <span id="auth-status" class="badge badge-warn">Auth key: missing</span>
+      <span id="base-url" class="badge badge-muted"></span>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card" id="setup-section">
+      <div class="card-header">
+        <h2>Setup</h2>
+        <p>Enable/disable authentication and serial debug.</p>
+      </div>
+      <div class="form-row">
+        <label for="setup-auth">Authentication enabled</label>
+        <label class="switch">
+          <input type="checkbox" id="setup-auth">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="form-row">
+        <label for="setup-serial">Serial debug enabled</label>
+        <label class="switch">
+          <input type="checkbox" id="setup-serial">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button id="apply-setup" class="primary">Apply setup</button>
+      <div id="setup-auth-key" class="alert alert-warn hidden">
+        <strong>Auth key:</strong> <span id="setup-auth-key-value"></span>
+        <div class="small-text">Save this key now, it will not be shown again.</div>
+      </div>
+    </section>
+
+    <section class="card" id="auth-section">
+      <div class="card-header">
+        <h2>Authentication key</h2>
+        <p>Store or clear the shared secret.</p>
+      </div>
+      <label for="auth-key-input">Auth key (hex, 64 chars)</label>
+      <input id="auth-key-input" type="text" placeholder="Paste auth key" autocomplete="off">
+      <div class="actions">
+        <button id="save-auth-key" class="primary">Save key</button>
+        <button id="clear-auth-key" class="danger">Clear key</button>
+      </div>
+      <div class="small-text">Key is stored in browser localStorage.</div>
+    </section>
+
+    <section class="card" id="state-section">
+      <div class="card-header">
+        <div class="card-header-row">
+          <h2>Device state</h2>
+          <button id="refresh-state" class="ghost">Refresh</button>
+        </div>
+        <p>Device info and flags.</p>
+      </div>
+      <div id="state-grid" class="info-grid"></div>
+    </section>
+
+    <section class="card" id="gpio-section">
+      <div class="card-header">
+        <div class="card-header-row">
+          <h2>GPIO control</h2>
+          <button id="refresh-gpio" class="ghost">Refresh</button>
+        </div>
+        <p>View and control pin modes and states.</p>
+      </div>
+      <div id="gpio-list" class="list"></div>
+    </section>
+
+    <section class="card" id="cron-section">
+      <div class="card-header">
+        <div class="card-header-row">
+          <h2>Cron jobs</h2>
+          <button id="refresh-cron" class="ghost">Refresh</button>
+        </div>
+        <p>Schedule actions on GPIO pins.</p>
+      </div>
+      <div id="cron-list" class="list"></div>
+      <div class="divider"></div>
+      <h3>Add cron job</h3>
+      <div class="form-row">
+        <label for="cron-expression">Cron</label>
+        <input id="cron-expression" type="text" placeholder="*/5 * * * *">
+      </div>
+      <div class="form-row">
+        <label for="cron-action">Action</label>
+        <select id="cron-action">
+          <option value="set">Set</option>
+          <option value="toggle">Toggle</option>
+          <option value="pwm">PWM</option>
+          <option value="reboot">Reboot</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="cron-pin">Pin</label>
+        <input id="cron-pin" type="text" placeholder="GPIO4">
+      </div>
+      <div class="form-row">
+        <label for="cron-value">Value</label>
+        <input id="cron-value" type="number" placeholder="1">
+      </div>
+      <button id="add-cron" class="primary">Add cron job</button>
+    </section>
+
+    <section class="card" id="log-section">
+      <div class="card-header">
+        <h2>Activity log</h2>
+        <p>Recent actions and errors.</p>
+      </div>
+      <div id="log-output" class="log"></div>
+    </section>
+  </main>
+
+  <script src="crypto.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
