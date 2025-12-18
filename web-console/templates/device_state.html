@@ -15,6 +15,30 @@
 
   <div id="state-error" class="callout callout-error hidden"></div>
 
+  <section class="card surface">
+    <header>
+      <div>
+        <div class="eyebrow">Backend call</div>
+        <h3>GET /api/state</h3>
+        <small id="state-auth-mode">Auth decision mirrors runtime status</small>
+      </div>
+      <div class="pill">JSON, idempotent</div>
+    </header>
+    <div class="api-grid">
+      <div>
+        <p class="muted">Copyable cURL with live headers.</p>
+        <pre class="code"><code id="state-curl"></code></pre>
+      </div>
+      <div>
+        <p class="muted">Latest firmware JSON response.</p>
+        <details class="response-viewer" open>
+          <summary>Show payload</summary>
+          <pre class="code" id="state-json"></pre>
+        </details>
+      </div>
+    </div>
+  </section>
+
   <section class="card-grid">
     <div class="card">
       <header>

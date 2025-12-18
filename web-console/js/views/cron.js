@@ -3,9 +3,13 @@
  */
 
 import { fetchDeviceState, setCron, deleteCron } from "../core/api.js";
-import { RuntimeState, isStateFresh } from "../core/state.js";
+import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
+import { buildCurl } from "../core/curl.js";
 
 let container = null;
+const STATE_SIGNATURE = "GET /api/state";
+const UPSERT_SIGNATURE = "PATCH /api/cron/set";
+const DELETE_SIGNATURE = "DELETE /api/cron";
 
 export function init() {
   container = document.getElementById("cron-view");
@@ -22,6 +26,10 @@ function bindActions() {
   container
     ?.querySelector("#cron-apply")
     ?.addEventListener("click", onApply);
+
+  container
+    ?.querySelectorAll(".cron-input")
+    .forEach((input) => input.addEventListener("input", renderApiDocs));
 }
 
 async function refresh(force = false) {
@@ -31,6 +39,8 @@ async function refresh(force = false) {
       await fetchDeviceState();
     }
     renderTable(RuntimeState.deviceState?.cronJobs || {});
+    renderApiDocs();
+    renderResponsePanels();
   } catch (err) {
     renderStatus(`Failed to load jobs: ${err.message}`, true);
   }
@@ -93,6 +103,7 @@ async function onApply() {
   try {
     await setCron(payload);
     renderStatus("Job stored");
+    renderResponsePanels();
     refresh(true);
   } catch (err) {
     renderStatus(err.message, true);
@@ -104,6 +115,7 @@ async function onDelete(slot) {
   try {
     await deleteCron(slot);
     renderStatus("Job removed");
+    renderResponsePanels();
     refresh(true);
   } catch (err) {
     renderStatus(err.message, true);
@@ -115,6 +127,67 @@ function renderStatus(message, isError = false) {
   if (!el) return;
   el.textContent = message;
   el.classList.toggle("error", isError);
+}
+
+function renderApiDocs() {
+  const stateCurl = container?.querySelector("#cron-curl-state");
+  const upsertCurl = container?.querySelector("#cron-curl-upsert");
+  const deleteCurl = container?.querySelector("#cron-curl-delete");
+  const payloadEl = container?.querySelector("#cron-payload");
+
+  if (stateCurl) {
+    stateCurl.textContent = buildCurl("/api/state", "GET", null, RuntimeState.authEnabled);
+  }
+
+  const payload = collectPayload();
+  if (upsertCurl) {
+    upsertCurl.textContent = buildCurl("/api/cron/set", "PATCH", payload, RuntimeState.authEnabled);
+  }
+
+  if (deleteCurl) {
+    deleteCurl.textContent = buildCurl(`/api/cron?id=${payload.id}`, "DELETE", null, RuntimeState.authEnabled);
+  }
+
+  if (payloadEl) {
+    payloadEl.textContent = JSON.stringify(payload, null, 2);
+  }
+}
+
+function renderResponsePanels() {
+  const readPre = container?.querySelector("#cron-read-json");
+  const upsertPre = container?.querySelector("#cron-upsert-json");
+  const deletePre = container?.querySelector("#cron-delete-json");
+
+  if (readPre) {
+    const raw = getLastResponse(STATE_SIGNATURE);
+    readPre.textContent = raw ? JSON.stringify(raw, null, 2) : "No state response yet.";
+  }
+
+  if (upsertPre) {
+    const raw = getLastResponse(UPSERT_SIGNATURE);
+    upsertPre.textContent = raw ? JSON.stringify(raw, null, 2) : "No upsert response yet.";
+  }
+
+  if (deletePre) {
+    const raw = getLastResponse(DELETE_SIGNATURE);
+    deletePre.textContent = raw ? JSON.stringify(raw, null, 2) : "No delete response yet.";
+  }
+}
+
+function collectPayload() {
+  const slot = container?.querySelector("#cron-slot")?.value || 0;
+  const cron = container?.querySelector("#cron-string")?.value.trim() || "*/5 * * * *";
+  const action = container?.querySelector("#cron-action")?.value.trim() || "toggle";
+  const pin = container?.querySelector("#cron-pin")?.value.trim();
+  const rawValue = container?.querySelector("#cron-value")?.value;
+
+  const payload = { id: Number(slot), cron, action };
+  if (pin) payload.pin = pin;
+  if (rawValue !== undefined && rawValue !== "") {
+    payload.value = isNaN(rawValue) ? rawValue : Number(rawValue);
+  }
+
+  return payload;
 }
 
 export default { init, destroy };

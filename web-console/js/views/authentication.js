@@ -4,6 +4,8 @@
 
 import { computeSignature, hasAuthKey } from "../core/auth.js";
 import { fetchNonce } from "../core/api.js";
+import { buildCurl } from "../core/curl.js";
+import { getLastResponse, RuntimeState } from "../core/state.js";
 
 let container = null;
 let currentNonce = null;
@@ -12,6 +14,8 @@ export function init() {
   container = document.getElementById("auth-view");
   bindEvents();
   updateSignaturePreview();
+  renderCurl();
+  renderResponse();
 }
 
 export function destroy() {}
@@ -37,6 +41,7 @@ async function onFetchNonce() {
     currentNonce = await fetchNonce();
     box.textContent = `nonce = ${currentNonce}`;
     updateSignaturePreview();
+    renderResponse();
   } catch (err) {
     box.textContent = `Challenge failed: ${err.message}`;
     box.classList.add("callout-error");
@@ -70,6 +75,29 @@ async function updateSignaturePreview() {
   } catch (err) {
     sigEl.textContent = err.message;
   }
+}
+
+function renderCurl() {
+  const curlEl = container?.querySelector("#auth-curl");
+  const authHint = container?.querySelector("#auth-mode");
+
+  if (curlEl) {
+    curlEl.textContent = buildCurl("/api/auth/challenge", "GET", null, false);
+  }
+
+  if (authHint) {
+    authHint.textContent = RuntimeState.authEnabled
+      ? "Challenge is always public, regardless of auth state"
+      : "No signature needed; device will still answer";
+  }
+}
+
+function renderResponse() {
+  const pre = container?.querySelector("#auth-json");
+  if (!pre) return;
+
+  const raw = getLastResponse("GET /api/auth/challenge");
+  pre.textContent = raw ? JSON.stringify(raw, null, 2) : "No challenge performed yet.";
 }
 
 export default { init, destroy };

@@ -9,10 +9,12 @@
  */
 
 import { fetchDeviceState } from "../core/api.js";
-import { RuntimeState, isStateFresh } from "../core/state.js";
+import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
+import { buildCurl } from "../core/curl.js";
 
 let container = null;
 let refreshBtn = null;
+const STATE_SIGNATURE = "GET /api/state";
 
 export function init() {
   container = document.getElementById("device-state-view");
@@ -43,6 +45,8 @@ function renderFromCache() {
   if (RuntimeState.deviceState) {
     render(RuntimeState.deviceState);
   }
+
+  renderApiDetails(RuntimeState.deviceState);
 }
 
 /**
@@ -57,8 +61,10 @@ async function loadState() {
       await fetchDeviceState();
     }
     render(RuntimeState.deviceState);
+    renderApiDetails(RuntimeState.deviceState);
   } catch (err) {
     renderError(err.message);
+    renderApiDetails(RuntimeState.deviceState);
   } finally {
     setBusy(false);
   }
@@ -95,6 +101,7 @@ function render(state) {
     cronBody.innerHTML = "";
     freshness.textContent = "—";
     updateTopbar(null);
+    renderApiDetails(null);
     return;
   }
 
@@ -115,6 +122,31 @@ function render(state) {
   cronBody.innerHTML = renderCronRows(state.cronJobs || {});
 
   freshness.textContent = new Date(RuntimeState.lastUpdateTs).toLocaleTimeString();
+}
+
+function renderApiDetails(state) {
+  if (!container) return;
+
+  const curlEl = container.querySelector("#state-curl");
+  const responseEl = container.querySelector("#state-json");
+  const metaEl = container.querySelector("#state-auth-mode");
+
+  if (curlEl) {
+    curlEl.textContent = buildCurl("/api/state", "GET", null, RuntimeState.authEnabled);
+  }
+
+  if (metaEl) {
+    metaEl.textContent = RuntimeState.authEnabled
+      ? "Auth headers are attached automatically"
+      : "Request sent unsigned (device reports auth disabled)";
+  }
+
+  if (responseEl) {
+    const raw = getLastResponse(STATE_SIGNATURE) || state;
+    responseEl.textContent = raw
+      ? JSON.stringify(raw, null, 2)
+      : "No response captured yet.";
+  }
 }
 
 function renderError(message) {

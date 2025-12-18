@@ -30,6 +30,10 @@
   gap: 8px;
 }
 
+.doc .pill {
+  margin-left: 8px;
+}
+
 .meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -56,9 +60,11 @@
 }
 
 pre {
-  background: #0f172a;
-  color: #e5e7eb;
+  background: var(--code-bg);
+  color: var(--code-fg);
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 10px;
   font-family: var(--font-mono);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }

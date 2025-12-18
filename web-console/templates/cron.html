@@ -44,28 +44,66 @@
     <div class="form-grid">
       <label>
         Slot ID
-        <input type="number" id="cron-slot" placeholder="0" />
+        <input class="cron-input" type="number" id="cron-slot" placeholder="0" />
       </label>
       <label>
         Cron string
-        <input type="text" id="cron-string" placeholder="*/5 * * * *" />
+        <input class="cron-input" type="text" id="cron-string" placeholder="*/5 * * * *" />
       </label>
       <label>
         Action
-        <input type="text" id="cron-action" placeholder="set|toggle|pwm|reboot" />
+        <input class="cron-input" type="text" id="cron-action" placeholder="set|toggle|pwm|reboot" />
       </label>
       <label>
         Pin
-        <input type="text" id="cron-pin" placeholder="GPIO4 or empty for reboot" />
+        <input class="cron-input" type="text" id="cron-pin" placeholder="GPIO4 or empty for reboot" />
       </label>
       <label>
         Value
-        <input type="text" id="cron-value" placeholder="1 or pwm value" />
+        <input class="cron-input" type="text" id="cron-value" placeholder="1 or pwm value" />
       </label>
     </div>
     <div class="form-actions">
       <button id="cron-apply" class="btn-primary">Upsert</button>
       <span id="cron-status" class="muted"></span>
+    </div>
+  </section>
+
+  <section class="card surface">
+    <header>
+      <div>
+        <div class="eyebrow">Backend calls</div>
+        <h3>State + Cron APIs</h3>
+        <small>Everything this page executes</small>
+      </div>
+      <div class="pill">Read + write</div>
+    </header>
+    <div class="api-grid">
+      <div>
+        <p class="muted">Load current jobs (GET /api/state).</p>
+        <pre class="code"><code id="cron-curl-state"></code></pre>
+        <details class="response-viewer" open>
+          <summary>Latest state JSON</summary>
+          <pre class="code" id="cron-read-json"></pre>
+        </details>
+      </div>
+      <div>
+        <p class="muted">Upsert payload mirrors the form above.</p>
+        <pre class="code"><code id="cron-payload"></code></pre>
+        <pre class="code"><code id="cron-curl-upsert"></code></pre>
+        <details class="response-viewer" open>
+          <summary>Upsert response</summary>
+          <pre class="code" id="cron-upsert-json"></pre>
+        </details>
+      </div>
+      <div>
+        <p class="muted">Deleting uses query string ?id=&lt;slot&gt;.</p>
+        <pre class="code"><code id="cron-curl-delete"></code></pre>
+        <details class="response-viewer" open>
+          <summary>Delete response</summary>
+          <pre class="code" id="cron-delete-json"></pre>
+        </details>
+      </div>
     </div>
   </section>
 </section>

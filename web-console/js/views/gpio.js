@@ -3,9 +3,12 @@
  */
 
 import { fetchDeviceState, setPin } from "../core/api.js";
-import { RuntimeState, isStateFresh } from "../core/state.js";
+import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
+import { buildCurl } from "../core/curl.js";
 
 let container = null;
+const STATE_SIGNATURE = "GET /api/state";
+const WRITE_SIGNATURE = "PATCH /api/pin/set";
 
 export function init() {
   container = document.getElementById("gpio-view");
@@ -22,6 +25,10 @@ function bindActions() {
   container
     ?.querySelector("#gpio-apply")
     ?.addEventListener("click", onManualWrite);
+
+  container
+    ?.querySelectorAll(".gpio-input")
+    .forEach((input) => input.addEventListener("input", renderApiDocs));
 }
 
 async function refresh(force = false) {
@@ -32,6 +39,8 @@ async function refresh(force = false) {
       await fetchDeviceState();
     }
     renderTable(RuntimeState.deviceState?.pins || {});
+    renderResponsePanels();
+    renderApiDocs();
   } catch (err) {
     renderStatus(`Failed to load pins: ${err.message}`, true);
   }
@@ -92,6 +101,7 @@ async function onManualWrite() {
   try {
     await setPin(payload);
     renderStatus("Pin updated");
+    renderResponsePanels();
     refresh(true);
   } catch (err) {
     renderStatus(err.message, true);
@@ -116,6 +126,52 @@ function safetyToClass(level) {
     default:
       return "";
   }
+}
+
+function renderApiDocs() {
+  const readCurl = container?.querySelector("#gpio-curl-read");
+  const writeCurl = container?.querySelector("#gpio-curl-write");
+  const payloadEl = container?.querySelector("#gpio-payload");
+
+  if (readCurl) {
+    readCurl.textContent = buildCurl("/api/state", "GET", null, RuntimeState.authEnabled);
+  }
+
+  const payload = collectManualPayload();
+  if (writeCurl) {
+    writeCurl.textContent = buildCurl("/api/pin/set", "PATCH", payload, RuntimeState.authEnabled);
+  }
+
+  if (payloadEl) {
+    payloadEl.textContent = JSON.stringify(payload, null, 2);
+  }
+}
+
+function renderResponsePanels() {
+  const readPre = container?.querySelector("#gpio-read-json");
+  const writePre = container?.querySelector("#gpio-write-json");
+
+  if (readPre) {
+    const raw = getLastResponse(STATE_SIGNATURE);
+    readPre.textContent = raw ? JSON.stringify(raw, null, 2) : "No state response yet.";
+  }
+
+  if (writePre) {
+    const raw = getLastResponse(WRITE_SIGNATURE);
+    writePre.textContent = raw ? JSON.stringify(raw, null, 2) : "No write response yet.";
+  }
+}
+
+function collectManualPayload() {
+  const pin = container?.querySelector("#gpio-id")?.value.trim() || "GPIO4";
+  const mode = container?.querySelector("#gpio-mode")?.value.trim();
+  const value = container?.querySelector("#gpio-value")?.value;
+
+  const payload = { id: pin };
+  if (mode) payload.mode = mode;
+  if (value !== undefined && value !== "") payload.state = Number(value);
+
+  return payload;
 }
 
 export default { init, destroy };

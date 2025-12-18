@@ -2,8 +2,8 @@
  * @brief Dynamic curl examples tailored to current settings.
  */
 
-import { RuntimeState } from "../core/state.js";
-import { getBaseUrl } from "../core/config.js";
+import { RuntimeState, getLastResponse } from "../core/state.js";
+import { buildCurl } from "../core/curl.js";
 
 let container = null;
 
@@ -11,8 +11,13 @@ export function init() {
   container = document.getElementById("examples-view");
   container
     ?.querySelector("#examples-refresh")
-    ?.addEventListener("click", renderExamples);
+    ?.addEventListener("click", () => {
+      renderExamples();
+      renderApiPanel();
+    });
+
   renderExamples();
+  renderApiPanel();
 }
 
 export function destroy() {}
@@ -49,10 +54,10 @@ function renderExamples() {
   grid.innerHTML = examples
     .map(
       (item) => `
-        <article class="card">
-          <h3>${item.title}</h3>
+        <article class="card surface">
+          <div class="eyebrow">${item.title}</div>
           <p class="muted">${item.desc}</p>
-          <pre><code>${item.cmd}</code></pre>
+          <pre class="code"><code>${item.cmd}</code></pre>
         </article>
       `
     )
@@ -67,25 +72,34 @@ function renderExamples() {
   grid.appendChild(status);
 }
 
-function buildCurl(path, method, body, authEnabled) {
-  const base = getBaseUrl() || "";
-  const url = `${base}${path}` || path;
-  const headers = [];
+function renderApiPanel() {
+  const payloadPreview = container?.querySelector("#examples-payload");
+  const curlPreview = container?.querySelector("#examples-curl");
+  const responsePreview = container?.querySelector("#examples-json");
+  const authBadge = container?.querySelector("#examples-auth-mode");
 
-  if (authEnabled) {
-    headers.push('-H "X-Nonce: <nonce>"');
-    headers.push('-H "X-Auth: <signature>"');
+  const payload = { id: "GPIO12", mode: "Output", state: 0 };
+
+  if (payloadPreview) {
+    payloadPreview.textContent = JSON.stringify(payload, null, 2);
   }
 
-  if (body) {
-    headers.push('-H "Content-Type: application/json"');
+  if (curlPreview) {
+    curlPreview.textContent = buildCurl("/api/pin/set", "PATCH", payload, RuntimeState.authEnabled);
   }
 
-  const headerStr = headers.length ? `\\
-  ${headers.join(" \\\n  ")}` : "";
-  const dataStr = body ? ` \\\n  -d '${JSON.stringify(body)}'` : "";
+  if (authBadge) {
+    authBadge.textContent = RuntimeState.authEnabled
+      ? "Signing enabled per RuntimeState"
+      : "Unsigned because auth is disabled";
+  }
 
-  return `curl -X ${method} ${url}${headerStr}${dataStr}`;
+  if (responsePreview) {
+    const raw = getLastResponse("PATCH /api/pin/set") || getLastResponse("GET /api/state");
+    responsePreview.textContent = raw
+      ? JSON.stringify(raw, null, 2)
+      : "No firmware JSON captured yet. Use the other views to trigger calls.";
+  }
 }
 
 export default { init, destroy };
