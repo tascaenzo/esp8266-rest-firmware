@@ -76,3 +76,47 @@ bool authVerify(const IPAddress &clientIp, uint32_t nonce, const char *uri,
  * @return true if authentication is enabled, false otherwise
  */
 bool getAuthEnabled();
+
+/**
+ * @brief Generates and persists a new authentication shared secret.
+ *
+ * - Generates a cryptographically secure 32-byte random key
+ * - Stores the key in EEPROM
+ * - Enables authentication flag
+ * - Returns the generated key for one-time provisioning use
+ *
+ * @param out Buffer that will receive the generated key (32 bytes)
+ * @return true if the key was generated and stored successfully
+ */
+bool generateAuthKey(uint8_t *out);
+
+/**
+ * @brief Enables API authentication.
+ *
+ * This function activates the authentication mechanism for all
+ * protected API endpoints.
+ *
+ * When authentication is enabled:
+ * - A valid authentication key must be present in persistent storage
+ * - All protected endpoints will require a valid HMAC signature
+ * - Requests without proper authentication will be rejected
+ *
+ * This function does not generate a key by itself; it only enables
+ * authentication using the currently stored key.
+ */
+void enableAuth();
+
+/**
+ * @brief Disables API authentication.
+ *
+ * This function disables the authentication mechanism for all
+ * API endpoints.
+ *
+ * When authentication is disabled:
+ * - All API endpoints are accessible without authentication
+ * - Stored authentication keys are NOT removed
+ * - Authentication can be re-enabled later without regenerating the key
+ *
+ * This is useful during provisioning, debugging, or recovery scenarios.
+ */
+void disableAuth();

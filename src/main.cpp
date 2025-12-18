@@ -44,8 +44,9 @@ void setup() {
   Serial.println();
   Serial.println("=== Device booting ===");
 
-  /* Initialize EEPROM (WiFi credentials) */
+  /* Initialize EEPROM (WiFi credentials & Flags) */
   eepromInit();
+  checkHardwareReset();
 
   /* Initialize persistent storage FS */
   storageInit();

@@ -10,6 +10,54 @@
  */
 bool eepromInit();
 
+/**
+ * @brief Resets the entire EEPROM configuration area.
+ *
+ * This function performs a full reset of the persistent EEPROM storage.
+ *
+ * Behavior:
+ * - Clears all stored data (WiFi credentials, auth key, flags)
+ * - Resets the magic value so the device is treated as "factory new"
+ * - Disables authentication
+ * - Disables serial debug
+ *
+ * After calling this function, the device will:
+ * - Start in provisioning mode on next boot
+ * - Require full reconfiguration
+ *
+ * @return true if the reset operation completed successfully
+ */
+bool resetEeprom();
+
+/**
+ * @brief Checks for a hardware-triggered factory reset at boot.
+ *
+ * This function implements a recovery mechanism based on a physical GPIO.
+ * If a predefined reset pin is held in its active state (e.g. LOW when using
+ * INPUT_PULLUP) for a fixed amount of time during startup, the device will:
+ *
+ *   - Clear all persistent configuration stored in EEPROM
+ *   - Reset authentication keys and flags
+ *   - Disable serial debug
+ *   - Reboot into provisioning mode
+ *
+ * The reset pin is sampled immediately after EEPROM initialization and
+ * before WiFi, authentication, or API services are started.
+ *
+ * This mechanism allows device recovery even when:
+ *   - Authentication is enabled but the key is lost
+ *   - WiFi credentials are invalid
+ *   - Remote access is no longer possible
+ *
+ * IMPORTANT:
+ * - The reset GPIO must NOT be a boot-sensitive pin (avoid GPIO0, GPIO2,
+ * GPIO15)
+ * - The pin logic (active HIGH or LOW) and hold time must be defined at compile
+ * time
+ * - The function is intended to be called once during startup (setup())
+ */
+void checkHardwareReset();
+
 /* -------------------------------------------------------------------------- */
 /* WiFi credentials                                                           */
 /* -------------------------------------------------------------------------- */
@@ -52,7 +100,7 @@ bool loadAuthFlag(bool *flag);
  *
  * @param flag true to enable, false to disable
  */
-bool setAuthFleg(bool flag);
+void setAuthFlag(bool flag);
 
 /**
  * @brief Loads the authentication shared secret.

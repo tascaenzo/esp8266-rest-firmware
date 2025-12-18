@@ -17,6 +17,7 @@ bool apiInit() {
   Serial.println("REST API started on port 80");
 
   api.on("/api/auth/challenge", HTTP_GET, handleAuthChallenge);
+  api.on("/api/setup", HTTP_POST, handleSetup);
   api.on("/api/state", HTTP_GET, handleGetState);
   api.on("/api/pin", HTTP_GET, handleGetPin);
   api.on("/api/config", HTTP_POST, handleConfig);

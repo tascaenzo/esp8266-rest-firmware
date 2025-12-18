@@ -1,16 +1,16 @@
 #include "Auth.h"
 
+#include <Crypto.h>
 #include <EepromConfig.h>
-#include <bearssl/bearssl.h>
 #include <string.h>
 
 #define AUTH_KEY_LEN 32
 
 /* Internal state */
-static uint8_t authKey[32];
+static uint8_t authKey[AUTH_KEY_LEN];
 static bool authEnabled = false;
 
-static const uint32_t NONCE_TIMEOUT_MS = 30000;
+static const uint32_t NONCE_TIMEOUT_MS = 50000;
 static AuthSlot authSlots[MAX_AUTH_SLOTS];
 
 static void clearSlot(AuthSlot &slot) {
@@ -59,44 +59,21 @@ bool authInit() {
 
   // Try loading authentication key from EEPROM
   if (authEnabled && loadAuthKey(authKey, AUTH_KEY_LEN)) {
+
     Serial.println("[AUTH] Authentication enabled (key loaded from EEPROM)");
+
+    // Convert key to hex string for debug
+    char keyHex[AUTH_KEY_LEN * 2 + 1];
+    bytesToHex(authKey, AUTH_KEY_LEN, keyHex);
+
+    Serial.print("[AUTH] key: ");
+    Serial.println(keyHex);
+
   } else {
     authEnabled = false;
     Serial.println("[AUTH] Authentication disabled (no key in EEPROM)");
   }
 
-  return true;
-}
-
-static void hmacSha256(const uint8_t *key, size_t keyLen, const uint8_t *data,
-                       size_t dataLen, uint8_t *out) {
-  br_hmac_key_context kc;
-  br_hmac_context ctx;
-
-  br_hmac_key_init(&kc, &br_sha256_vtable, key, keyLen);
-  br_hmac_init(&ctx, &kc, 0);
-  br_hmac_update(&ctx, data, dataLen);
-  br_hmac_out(&ctx, out);
-}
-
-static uint8_t hexToNibble(char c) {
-  if (c >= '0' && c <= '9')
-    return c - '0';
-  if (c >= 'a' && c <= 'f')
-    return c - 'a' + 10;
-  if (c >= 'A' && c <= 'F')
-    return c - 'A' + 10;
-  return 0xFF;
-}
-
-static bool hexToBytes(const char *hex, uint8_t *out, size_t outLen) {
-  for (size_t i = 0; i < outLen; i++) {
-    uint8_t hi = hexToNibble(hex[i * 2]);
-    uint8_t lo = hexToNibble(hex[i * 2 + 1]);
-    if (hi == 0xFF || lo == 0xFF)
-      return false;
-    out[i] = (hi << 4) | lo;
-  }
   return true;
 }
 
@@ -157,23 +134,41 @@ bool authVerify(const IPAddress &clientIp, uint32_t nonce, const char *uri,
   strcat(data, uri);
   strcat(data, payload);
 
-  uint8_t expectedMac[32];
+  uint8_t expectedMac[AUTH_KEY_LEN];
   hmacSha256(authKey, AUTH_KEY_LEN, (const uint8_t *)data, strlen(data),
              expectedMac);
 
-  uint8_t clientMac[32];
+  uint8_t clientMac[AUTH_KEY_LEN];
   if (!hexToBytes(signature, clientMac, sizeof(clientMac))) {
     clearSlot(slot);
     return false;
   }
 
-  clearSlot(slot); // nonce monouso (anti-replay)
+  clearSlot(slot); // nonce (anti-replay)
 
-  uint8_t diff = 0;
-  for (size_t i = 0; i < 32; i++)
-    diff |= expectedMac[i] ^ clientMac[i];
-
-  return diff == 0;
+  return secureCompare(expectedMac, clientMac, AUTH_KEY_LEN);
 }
 
 bool getAuthEnabled() { return authEnabled; }
+
+bool generateAuthKey(uint8_t *out) {
+
+  if (!out)
+    return false;
+
+  randomBytes(out, AUTH_KEY_LEN);
+  setAuthKey(out, AUTH_KEY_LEN);
+
+  Serial.println("[AUTH] New authentication key generated and stored");
+  return true;
+}
+
+void enableAuth() {
+  setAuthFlag(true);
+  authEnabled = true;
+}
+
+void disableAuth() {
+  setAuthFlag(false);
+  authEnabled = false;
+}

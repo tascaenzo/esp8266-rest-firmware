@@ -2,7 +2,9 @@
 #include "ApiContext.h"
 #include <Auth.h>
 #include <CronScheduler.h>
+#include <Crypto.h>
 #include <DeviceController.h>
+#include <EepromConfig.h>
 
 void handleAuthChallenge() {
   ESP8266WebServer &api = apiServer();
@@ -20,11 +22,54 @@ void handleAuthChallenge() {
   sendJSON(doc, 200);
 }
 
-void handleSetup() {}
-
-void handleGetState() {
+void handleSetup() {
   ESP8266WebServer &api = apiServer();
 
+  if (getAuthEnabled() && !checkAuth(JsonDocument()))
+    return;
+
+  if (!api.hasArg("plain")) {
+    sendError("missing body");
+    return;
+  }
+
+  JsonDocument doc;
+  if (deserializeJson(doc, api.arg("plain"))) {
+    sendError("invalid json");
+    return;
+  }
+
+  JsonObject obj = doc.as<JsonObject>();
+
+  if (obj["serialDebug"].isNull() || obj["auth"].isNull()) {
+    sendError("missing parameters");
+    return;
+  }
+
+  bool authFlag = obj["auth"].as<bool>();
+  bool debugFlag = obj["serialDebug"].as<bool>();
+
+  // Persist flags
+  setSerialDebugFlag(debugFlag);
+  authFlag ? enableAuth() : disableAuth();
+
+  JsonDocument resp;
+  resp["serialDebug"] = debugFlag;
+  resp["auth"] = authFlag;
+
+  if (authFlag) {
+    uint8_t key[32];
+    generateAuthKey(key);
+
+    char hex[65];
+    bytesToHex(key, 32, hex);
+    resp["authKey"] = hex;
+  }
+
+  sendJSON(resp, 200);
+}
+
+void handleGetState() {
   if (!checkAuth(JsonDocument()))
     return;
 
@@ -37,6 +82,7 @@ void handleGetState() {
   device["chip"] = ESP.getChipId();
   device["rssi"] = WiFi.RSSI();
   device["auth"] = getAuthEnabled();
+  device["serialDebug"] = true;
   device["uptime"] = millis() / 1000;
 
   // Cron jobs

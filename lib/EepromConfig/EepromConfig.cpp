@@ -43,6 +43,11 @@
 /* Serial debug */
 #define DEBUG_FLAG_ADDR 103
 
+/* Hardwer Reset */
+#define RESET_GPIO 4          // GPIO4
+#define RESET_ACTIVE_LOW true // true = LOW active
+#define RESET_HOLD_MS 5000    // 5 seconds
+
 /* -------------------------------------------------------------------------- */
 /* Initialization                                                             */
 /* -------------------------------------------------------------------------- */
@@ -74,6 +79,58 @@ bool eepromInit() {
   }
 
   return true;
+}
+
+bool resetEeprom() {
+  Serial.println("[EEPROM] Performing full EEPROM reset...");
+
+  // Clear entire EEPROM region
+  for (int i = 0; i < EEPROM_SIZE; i++) {
+    EEPROM.write(i, 0x00);
+  }
+
+  // Persist changes to flash
+  if (!EEPROM.commit()) {
+    Serial.println("[EEPROM] ERROR: Commit failed");
+    return false;
+  }
+
+  Serial.println("[EEPROM] EEPROM reset completed");
+  return true;
+}
+
+void checkHardwareReset() {
+  pinMode(RESET_GPIO, INPUT_PULLUP);
+
+  bool active = RESET_ACTIVE_LOW ? (digitalRead(RESET_GPIO) == LOW)
+                                 : (digitalRead(RESET_GPIO) == HIGH);
+
+  if (!active)
+    return;
+
+  Serial.println("[RESET] Reset pin active, waiting...");
+
+  uint32_t start = millis();
+
+  while (millis() - start < RESET_HOLD_MS) {
+
+    bool stillActive = RESET_ACTIVE_LOW ? (digitalRead(RESET_GPIO) == LOW)
+                                        : (digitalRead(RESET_GPIO) == HIGH);
+
+    if (!stillActive) {
+      Serial.println("[RESET] Reset aborted");
+      return;
+    }
+
+    delay(10); // watchdog-friendly
+  }
+
+  Serial.println("[RESET] Factory reset triggered");
+
+  resetEeprom();
+
+  delay(200);
+  ESP.restart();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -142,10 +199,9 @@ bool loadAuthKey(uint8_t *key, size_t length) {
   return true;
 }
 
-bool setAuthFlag(bool flag) {
+void setAuthFlag(bool flag) {
   EEPROM.write(AUTH_FLAG_ADDR, flag ? 0xA5 : 0x00);
   EEPROM.commit();
-  return true;
 }
 
 void setAuthKey(const uint8_t *key, size_t length) {
