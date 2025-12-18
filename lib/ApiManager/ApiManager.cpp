@@ -4,10 +4,10 @@
 #include <ArduinoJson.h>
 #include <Auth.h>
 #include <CronScheduler.h>
+#include <Debug.h>
 #include <DeviceController.h>
 #include <ESP8266WebServer.h>
 #include <EepromConfig.h>
-#include <Debug.h>
 
 bool apiInit() {
   ESP8266WebServer &api = apiServer();

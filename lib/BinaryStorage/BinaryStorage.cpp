@@ -16,8 +16,7 @@ bool storageWrite(const char *path, const uint8_t *data, size_t length) {
 
   File f = LittleFS.open(path, "w");
   if (!f) {
-    debugPrintln(F("[STORAGE]"),
-                 F("ERROR: Failed to open file for writing."));
+    debugPrintln(F("[STORAGE]"), F("ERROR: Failed to open file for writing."));
     return false;
   }
 
@@ -27,8 +26,9 @@ bool storageWrite(const char *path, const uint8_t *data, size_t length) {
   debugPrintln(F("[STORAGE]"), "Bytes written: " + String(writtenBytes));
 
   if (writtenBytes != length) {
-    debugPrintln(F("[STORAGE]"),
-                 F("ERROR: Incomplete write — storage full or filesystem error."));
+    debugPrintln(
+        F("[STORAGE]"),
+        F("ERROR: Incomplete write — storage full or filesystem error."));
     return false;
   }
 
@@ -42,9 +42,8 @@ bool storageWrite(const char *path, const uint8_t *data, size_t length) {
  */
 bool storageRead(const char *path, uint8_t *buffer, size_t length) {
 
-  debugPrintln(F("[STORAGE]"),
-               "Reading file: " + String(path) +
-                   " into buffer of length " + String(length));
+  debugPrintln(F("[STORAGE]"), "Reading file: " + String(path) +
+                                   " into buffer of length " + String(length));
 
   if (!LittleFS.exists(path)) {
     debugPrintln(F("[STORAGE]"), F("File does not exist."));
@@ -64,8 +63,9 @@ bool storageRead(const char *path, uint8_t *buffer, size_t length) {
   debugPrintln(F("[STORAGE]"), "Bytes read:      " + String(readBytes));
 
   if (readBytes != length) {
-    debugPrintln(F("[STORAGE]"),
-                 F("ERROR: Incomplete read — corrupted or mismatched file size."));
+    debugPrintln(
+        F("[STORAGE]"),
+        F("ERROR: Incomplete read — corrupted or mismatched file size."));
     return false;
   }
 

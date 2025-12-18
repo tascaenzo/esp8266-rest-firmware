@@ -1,8 +1,8 @@
 #include "Auth.h"
 
 #include <Crypto.h>
-#include <EepromConfig.h>
 #include <Debug.h>
+#include <EepromConfig.h>
 #include <string.h>
 
 #define AUTH_KEY_LEN 32
@@ -72,8 +72,7 @@ bool authInit() {
 
   } else {
     authEnabled = false;
-    debugPrintln(F("[AUTH]"),
-                 F("Authentication disabled (no key in EEPROM)"));
+    debugPrintln(F("[AUTH]"), F("Authentication disabled (no key in EEPROM)"));
   }
 
   return true;

@@ -23,9 +23,9 @@
 #include "Auth.h"
 #include "BinaryStorage.h"
 #include "CronScheduler.h"
+#include "Debug.h"
 #include "DeviceController.h"
 #include "EepromConfig.h"
-#include "Debug.h"
 #include "WebPortal.h"
 #include "WifiManager.h"
 

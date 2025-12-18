@@ -41,9 +41,8 @@ bool wifiConnect(const String &ssid, const String &pass) {
   debugPrintln(F("[WiFi]"), String(""));
 
   if (WiFi.status() == WL_CONNECTED) {
-    debugPrintln(F("[WiFi]"),
-                 "WiFi connected successfully. IP address: " +
-                     WiFi.localIP().toString());
+    debugPrintln(F("[WiFi]"), "WiFi connected successfully. IP address: " +
+                                  WiFi.localIP().toString());
     return true;
   }
 

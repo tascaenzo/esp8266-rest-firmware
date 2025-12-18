@@ -12,7 +12,7 @@ template <typename T> void printTag(const T &tag) {
   Serial.print(tag);
   Serial.print(' ');
 }
-}
+} // namespace
 
 void debugInit() {
   bool storedFlag = false;
@@ -23,7 +23,7 @@ void debugInit() {
   }
 
   Serial.println(debugActive ? F("[DEBUG] Serial debug ENABLED")
-                              : F("[DEBUG] Serial debug DISABLED"));
+                             : F("[DEBUG] Serial debug DISABLED"));
 }
 
 bool debugEnabled() { return debugActive; }
@@ -31,7 +31,7 @@ bool debugEnabled() { return debugActive; }
 void debugSetEnabled(bool enabled) {
   debugActive = enabled;
   Serial.println(debugActive ? F("[DEBUG] Runtime debug ENABLED")
-                              : F("[DEBUG] Runtime debug DISABLED"));
+                             : F("[DEBUG] Runtime debug DISABLED"));
 }
 
 void debugPrint(const String &message) {

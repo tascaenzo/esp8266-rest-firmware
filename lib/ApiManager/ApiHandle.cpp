@@ -3,9 +3,9 @@
 #include <Auth.h>
 #include <CronScheduler.h>
 #include <Crypto.h>
+#include <Debug.h>
 #include <DeviceController.h>
 #include <EepromConfig.h>
-#include <Debug.h>
 
 void handleAuthChallenge() {
   ESP8266WebServer &api = apiServer();

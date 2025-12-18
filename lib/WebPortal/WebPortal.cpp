@@ -81,8 +81,7 @@ bool portalStart() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP("ESP8266-Setup", "12345678");
 
-  debugPrintln(F("[Portal]"),
-               "AP IP address: " + WiFi.softAPIP().toString());
+  debugPrintln(F("[Portal]"), "AP IP address: " + WiFi.softAPIP().toString());
 
   // Main configuration page
   server.on("/", HTTP_GET, []() { server.send(200, "text/html", htmlPage()); });
