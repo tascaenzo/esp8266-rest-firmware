@@ -25,6 +25,7 @@
 #include "CronScheduler.h"
 #include "DeviceController.h"
 #include "EepromConfig.h"
+#include "Debug.h"
 #include "WebPortal.h"
 #include "WifiManager.h"
 
@@ -46,6 +47,7 @@ void setup() {
 
   /* Initialize EEPROM (WiFi credentials & Flags) */
   eepromInit();
+  debugInit();
   checkHardwareReset();
 
   /* Initialize persistent storage FS */
@@ -59,17 +61,16 @@ void setup() {
 
   /* Load WiFi credentials from EEPROM */
   if (loadWifiCredentials(WIFI_SSID, WIFI_PASS)) {
-    Serial.print("Stored WiFi credentials found: ");
-    Serial.println(WIFI_SSID);
+    debugPrintln("Stored WiFi credentials found: " + WIFI_SSID);
 
     if (!wifiConnect(WIFI_SSID, WIFI_PASS)) {
-      Serial.println("WiFi connection failed → starting captive portal.");
+      debugPrintln("WiFi connection failed → starting captive portal.");
       portalStart();
     } else {
-      Serial.println("WiFi connected successfully!");
+      debugPrintln("WiFi connected successfully!");
     }
   } else {
-    Serial.println("No WiFi credentials → starting captive portal.");
+    debugPrintln("No WiFi credentials → starting captive portal.");
     portalStart();
   }
 
@@ -83,7 +84,7 @@ void setup() {
   cronSchedulerInit();
 
   systemBootstrapped = true;
-  Serial.println("=== System bootstrap complete ===");
+  debugPrintln("=== System bootstrap complete ===");
 }
 
 void loop() {

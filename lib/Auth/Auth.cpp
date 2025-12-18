@@ -2,6 +2,7 @@
 
 #include <Crypto.h>
 #include <EepromConfig.h>
+#include <Debug.h>
 #include <string.h>
 
 #define AUTH_KEY_LEN 32
@@ -60,18 +61,18 @@ bool authInit() {
   // Try loading authentication key from EEPROM
   if (authEnabled && loadAuthKey(authKey, AUTH_KEY_LEN)) {
 
-    Serial.println("[AUTH] Authentication enabled (key loaded from EEPROM)");
+    debugPrintln(F("[AUTH] Authentication enabled (key loaded from EEPROM)"));
 
     // Convert key to hex string for debug
     char keyHex[AUTH_KEY_LEN * 2 + 1];
     bytesToHex(authKey, AUTH_KEY_LEN, keyHex);
 
-    Serial.print("[AUTH] key: ");
-    Serial.println(keyHex);
+    debugPrint(F("[AUTH] key: "));
+    debugPrintln(keyHex);
 
   } else {
     authEnabled = false;
-    Serial.println("[AUTH] Authentication disabled (no key in EEPROM)");
+    debugPrintln(F("[AUTH] Authentication disabled (no key in EEPROM)"));
   }
 
   return true;
@@ -159,7 +160,7 @@ bool generateAuthKey(uint8_t *out) {
   randomBytes(out, AUTH_KEY_LEN);
   setAuthKey(out, AUTH_KEY_LEN);
 
-  Serial.println("[AUTH] New authentication key generated and stored");
+  debugPrintln(F("[AUTH] New authentication key generated and stored"));
   return true;
 }
 

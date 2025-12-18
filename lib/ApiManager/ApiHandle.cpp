@@ -5,6 +5,7 @@
 #include <Crypto.h>
 #include <DeviceController.h>
 #include <EepromConfig.h>
+#include <Debug.h>
 
 void handleAuthChallenge() {
   ESP8266WebServer &api = apiServer();
@@ -51,6 +52,7 @@ void handleSetup() {
 
   // Persist flags
   setSerialDebugFlag(debugFlag);
+  debugSetEnabled(debugFlag);
   authFlag ? enableAuth() : disableAuth();
 
   JsonDocument resp;
@@ -82,7 +84,7 @@ void handleGetState() {
   device["chip"] = ESP.getChipId();
   device["rssi"] = WiFi.RSSI();
   device["auth"] = getAuthEnabled();
-  device["serialDebug"] = true;
+  device["serialDebug"] = debugEnabled();
   device["uptime"] = millis() / 1000;
 
   // Cron jobs
@@ -385,7 +387,7 @@ void handleReboot() {
   doc["rebooting"] = true;
   sendJSON(doc, 200);
 
-  Serial.println("Rebooting - /api/reboot");
+  debugPrintln(F("Rebooting - /api/reboot"));
   api.client().flush();
   delay(100);
   ESP.restart();

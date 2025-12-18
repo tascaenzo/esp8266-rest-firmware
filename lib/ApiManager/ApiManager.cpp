@@ -7,6 +7,7 @@
 #include <DeviceController.h>
 #include <ESP8266WebServer.h>
 #include <EepromConfig.h>
+#include <Debug.h>
 
 bool apiInit() {
   ESP8266WebServer &api = apiServer();
@@ -14,7 +15,7 @@ bool apiInit() {
   api.collectHeaders("X-Nonce", "X-Auth");
 
   api.begin();
-  Serial.println("REST API started on port 80");
+  debugPrintln(F("REST API started on port 80"));
 
   api.on("/api/auth/challenge", HTTP_GET, handleAuthChallenge);
   api.on("/api/setup", HTTP_POST, handleSetup);

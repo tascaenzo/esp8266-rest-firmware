@@ -2,6 +2,8 @@
 #include <BinaryStorage.h>
 #include <GpioUtils.h>
 
+#include <Debug.h>
+
 #define STORAGE_PATH "/gpio_state.bin"
 #define FILE_SIZE sizeof(GpioConfig) * MAX_GPIO_PINS
 
@@ -12,13 +14,13 @@ static GpioConfig gpioState[MAX_GPIO_PINS];
  * from flash memory. If loading fails, all pins are initialized as Disabled.
  */
 bool deviceInit() {
-  Serial.println("Initializing DeviceController and loading GPIO state...");
+  debugPrintln(F("Initializing DeviceController and loading GPIO state..."));
 
   bool storageOk = storageRead(STORAGE_PATH, (uint8_t *)gpioState, FILE_SIZE);
 
   if (!storageOk) {
-    Serial.println("Failed to load GPIO state from storage. Initializing all "
-                   "pins as Disabled.");
+    debugPrintln(F("Failed to load GPIO state from storage. Initializing all "
+                   "pins as Disabled."));
     // If loading fails, initialize all pins as Disabled
     for (int i = 0; i < MAX_GPIO_PINS; i++) {
       gpioState[i] = {(uint8_t)(i + 1), PinMode::Disabled, LOW};
@@ -42,8 +44,8 @@ void applyConfigToHardware(const GpioConfig &cfg) {
   if (cfg.pin == A0_INDEX || !gpioIsValid(cfg.pin))
     return;
 
-  Serial.println("Applying config to pin " + String(cfg.pin) + ": " +
-                 pinModeToString(cfg.mode) + ", state=" + String(cfg.state));
+  debugPrintln("Applying config to pin " + String(cfg.pin) + ": " +
+               pinModeToString(cfg.mode) + ", state=" + String(cfg.state));
 
   switch (cfg.mode) {
 
@@ -78,9 +80,9 @@ void applyConfigToHardware(const GpioConfig &cfg) {
  * to flash storage.
  */
 bool deviceSet(GpioConfig &config) {
-  Serial.println("Setting pin " + String(config.pin) + " to mode " +
-                 pinModeToString(config.mode) + " with state " +
-                 String(config.state));
+  debugPrintln("Setting pin " + String(config.pin) + " to mode " +
+               pinModeToString(config.mode) + " with state " +
+               String(config.state));
 
   // SPECIAL CASE: A0 (Analog)
   if (config.pin == A0_INDEX) {
