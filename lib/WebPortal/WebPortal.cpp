@@ -1,6 +1,8 @@
 #include "WebPortal.h"
 #include "EepromConfig.h"
 
+#include <Debug.h>
+
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 
@@ -73,14 +75,13 @@ String htmlPage() {
  * Starts the configuration access point and web server.
  */
 bool portalStart() {
-  Serial.println("Starting configuration Access Point...");
+  debugPrintln(F("[Portal]"), F("Starting configuration Access Point..."));
 
   // Dual mode allows both AP mode and WiFi scanning
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP("ESP8266-Setup", "12345678");
 
-  Serial.print("AP IP address: ");
-  Serial.println(WiFi.softAPIP());
+  debugPrintln(F("[Portal]"), "AP IP address: " + WiFi.softAPIP().toString());
 
   // Main configuration page
   server.on("/", HTTP_GET, []() { server.send(200, "text/html", htmlPage()); });
@@ -105,7 +106,7 @@ bool portalStart() {
   server.begin();
   active = true;
 
-  Serial.println("Configuration portal started.");
+  debugPrintln(F("[Portal]"), F("Configuration portal started."));
   return true;
 }
 

@@ -1,6 +1,8 @@
 #include "WifiManager.h"
 #include <ESP8266WiFi.h>
 
+#include <Debug.h>
+
 /**
  * Initializes the WiFi module in Station (STA) mode
  * and forces a clean disconnection from any previous network.
@@ -12,7 +14,7 @@ bool wifiInit() {
   WiFi.disconnect();
   delay(100);
 
-  Serial.println("WiFi initialized in STA mode.");
+  debugPrintln(F("[WiFi]"), F("WiFi initialized in STA mode."));
   return true;
 }
 
@@ -24,8 +26,7 @@ bool wifiConnect(const String &ssid, const String &pass) {
   if (ssid.length() == 0)
     return false;
 
-  Serial.print("Connecting to WiFi network: ");
-  Serial.println(ssid);
+  debugPrintln(F("[WiFi]"), "Connecting to WiFi network: " + ssid);
 
   WiFi.begin(ssid.c_str(), pass.c_str());
 
@@ -35,17 +36,17 @@ bool wifiConnect(const String &ssid, const String &pass) {
   // Wait until connected or timeout expires
   while (WiFi.status() != WL_CONNECTED && millis() - start < timeout) {
     delay(250);
-    Serial.print(".");
+    debugPrint(F("."));
   }
-  Serial.println();
+  debugPrintln(F("[WiFi]"), String(""));
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.print("WiFi connected successfully. IP address: ");
-    Serial.println(WiFi.localIP());
+    debugPrintln(F("[WiFi]"), "WiFi connected successfully. IP address: " +
+                                  WiFi.localIP().toString());
     return true;
   }
 
-  Serial.println("WiFi connection failed.");
+  debugPrintln(F("[WiFi]"), F("WiFi connection failed."));
   return false;
 }
 
