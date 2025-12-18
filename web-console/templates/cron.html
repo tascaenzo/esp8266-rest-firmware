@@ -1,3 +1,71 @@
-<section class="doc">
-  <h2>cron</h2>
+<section class="doc" id="cron-view">
+  <header class="doc-header">
+    <div>
+      <h2>Cron Scheduler</h2>
+      <p class="lead">
+        Deterministic 5-field cron with up to 32 slots. All jobs are persisted
+        by the firmware and included in <code>/api/state</code>.
+      </p>
+    </div>
+    <div class="doc-actions">
+      <button id="cron-refresh" class="btn-secondary">Reload jobs</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <header>
+      <h3>Scheduled jobs</h3>
+      <small>Direct view of firmware table</small>
+    </header>
+    <div class="table-wrapper">
+      <table class="data-table" id="cron-table">
+        <thead>
+          <tr>
+            <th>Slot</th>
+            <th>Cron</th>
+            <th>Action</th>
+            <th>Pin</th>
+            <th>Value</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h3>Add / update job</h3>
+      <small>PATCH /api/cron/set</small>
+    </header>
+
+    <div class="form-grid">
+      <label>
+        Slot ID
+        <input type="number" id="cron-slot" placeholder="0" />
+      </label>
+      <label>
+        Cron string
+        <input type="text" id="cron-string" placeholder="*/5 * * * *" />
+      </label>
+      <label>
+        Action
+        <input type="text" id="cron-action" placeholder="set|toggle|pwm|reboot" />
+      </label>
+      <label>
+        Pin
+        <input type="text" id="cron-pin" placeholder="GPIO4 or empty for reboot" />
+      </label>
+      <label>
+        Value
+        <input type="text" id="cron-value" placeholder="1 or pwm value" />
+      </label>
+    </div>
+    <div class="form-actions">
+      <button id="cron-apply" class="btn-primary">Upsert</button>
+      <span id="cron-status" class="muted"></span>
+    </div>
+  </section>
 </section>

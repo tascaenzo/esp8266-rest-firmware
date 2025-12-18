@@ -1,3 +1,61 @@
-<section class="doc">
-  <h2>gpio</h2>
+<section class="doc" id="gpio-view">
+  <header class="doc-header">
+    <div>
+      <h2>GPIO API</h2>
+      <p class="lead">
+        Inspect and adjust pin configuration. Writes use <code>/api/pin/set</code>
+        and respect firmware safety classifications.
+      </p>
+    </div>
+    <div class="doc-actions">
+      <button id="gpio-refresh" class="btn-secondary">Reload pins</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <header>
+      <h3>Pin map</h3>
+      <small>Live snapshot from RuntimeState.deviceState</small>
+    </header>
+
+    <div class="table-wrapper">
+      <table class="data-table" id="gpio-table">
+        <thead>
+          <tr>
+            <th>Pin</th>
+            <th>Mode</th>
+            <th>State</th>
+            <th>Safety</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h3>Manual write</h3>
+      <small>Use this to set a pin deterministically.</small>
+    </header>
+    <div class="form-grid">
+      <label>
+        Pin ID
+        <input type="text" id="gpio-id" placeholder="GPIO4" />
+      </label>
+      <label>
+        Mode
+        <input type="text" id="gpio-mode" placeholder="Output" />
+      </label>
+      <label>
+        Value
+        <input type="number" id="gpio-value" placeholder="1" />
+      </label>
+    </div>
+    <div class="form-actions">
+      <button id="gpio-apply" class="btn-primary">Apply</button>
+      <span id="gpio-status" class="muted"></span>
+    </div>
+  </section>
 </section>

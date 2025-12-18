@@ -17,6 +17,44 @@
   color: var(--muted);
 }
 
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.doc-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.meta .label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.tight {
+  margin-top: 0;
+  padding-left: 18px;
+}
+
 pre {
   background: #0f172a;
   color: #e5e7eb;

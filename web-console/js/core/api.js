@@ -48,6 +48,22 @@ async function requestNonce() {
 }
 
 /**
+ * @brief Public wrapper to fetch a fresh nonce.
+ *
+ * Exposed for documentation and live authentication previews.
+ *
+ * @returns {Promise<string>} Nonce value
+ */
+export async function fetchNonce() {
+  try {
+    return await requestNonce();
+  } catch (err) {
+    setLastError(err.message, "GET /api/auth/challenge");
+    throw err;
+  }
+}
+
+/**
  * @brief Perform an API request with optional authentication.
  *
  * Authentication behavior:
