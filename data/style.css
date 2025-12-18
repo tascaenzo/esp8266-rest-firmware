@@ -93,6 +93,33 @@ p {
   box-shadow: var(--shadow);
 }
 
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+}
+
+.data-table th,
+.data-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.data-table thead {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.data-table tbody tr:hover {
+  background: #f8fafc;
+}
+
 .card-header {
   margin-bottom: 12px;
 }
@@ -182,52 +209,6 @@ button:disabled {
   margin: 10px 0;
 }
 
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-}
-
-.info-item {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
-}
-
-.info-item .label {
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.info-item .value {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.pin-card, .cron-card {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  background: #f8fafc;
-}
-
-.pin-header, .cron-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .pill {
   padding: 4px 8px;
   border-radius: 12px;
@@ -256,10 +237,14 @@ button:disabled {
 }
 
 .controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  display: flex;
   gap: 10px;
-  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.table-title {
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .range-row {

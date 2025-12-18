@@ -20,10 +20,10 @@ const els = {
   clearAuthKey: document.getElementById("clear-auth-key"),
   refreshState: document.getElementById("refresh-state"),
   refreshAll: document.getElementById("refresh-all"),
-  stateGrid: document.getElementById("state-grid"),
+  stateTable: document.getElementById("state-table"),
   stateSummary: document.getElementById("state-summary"),
-  gpioList: document.getElementById("gpio-list"),
-  cronList: document.getElementById("cron-list"),
+  gpioTable: document.getElementById("gpio-table"),
+  cronTable: document.getElementById("cron-table"),
   refreshGpio: document.getElementById("refresh-gpio"),
   refreshCron: document.getElementById("refresh-cron"),
   cronExpression: document.getElementById("cron-expression"),
@@ -141,22 +141,21 @@ async function apiFetch(path, opts = {}) {
 }
 
 function renderState(state) {
-  els.stateGrid.innerHTML = "";
+  els.stateTable.innerHTML = "";
   const { device = {} } = state || {};
   const entries = [
-    { label: "IP", value: device.ip || "—" },
-    { label: "Chip ID", value: device.chip ?? "—" },
-    { label: "RSSI", value: device.rssi != null ? `${device.rssi} dBm` : "—" },
-    { label: "Uptime", value: formatUptime(device.uptime) },
-    { label: "Auth enabled", value: device.auth ? "Yes" : "No" },
-    { label: "Serial debug", value: device.serialDebug ? "On" : "Off" },
+    ["IP", device.ip || "—"],
+    ["Chip ID", device.chip ?? "—"],
+    ["RSSI", device.rssi != null ? `${device.rssi} dBm` : "—"],
+    ["Uptime", formatUptime(device.uptime)],
+    ["Auth enabled", device.auth ? "Yes" : "No"],
+    ["Serial debug", device.serialDebug ? "On" : "Off"],
   ];
 
-  entries.forEach((entry) => {
-    const item = document.createElement("div");
-    item.className = "info-item";
-    item.innerHTML = `<div class="label">${entry.label}</div><div class="value">${entry.value}</div>`;
-    els.stateGrid.appendChild(item);
+  entries.forEach(([label, value]) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<th>${label}</th><td>${value}</td>`;
+    els.stateTable.appendChild(row);
   });
 
   if (typeof device.auth === "boolean") {
@@ -177,41 +176,16 @@ function renderState(state) {
 }
 
 function renderPins(state) {
-  els.gpioList.innerHTML = "";
+  els.gpioTable.innerHTML = "";
   const pins = state?.pins || {};
   const hasKey = hasAuthKey();
 
   Object.entries(pins).forEach(([id, pin]) => {
-    const card = document.createElement("div");
-    card.className = "pin-card";
-
-    const safetyClass =
-      pin.safety === "Safe"
-        ? "pill-success"
-        : pin.safety === "Warn"
-          ? "pill-warn"
-          : "pill-danger";
-
-    card.innerHTML = `
-      <div class="pin-header">
-        <div>
-          <h3>${id}</h3>
-          <div class="small-text">${(pin.capabilities || []).join(" · ")}</div>
-        </div>
-        <div class="pill ${safetyClass}">${pin.safety || "Unknown"}</div>
-      </div>
-      <div class="controls"></div>
-    `;
-
-    const controls = card.querySelector(".controls");
-
-    // Mode selector
-    const modeWrap = document.createElement("div");
-    const modeLabel = document.createElement("label");
-    modeLabel.textContent = "Mode";
-    const modeSelect = document.createElement("select");
+    const row = document.createElement("tr");
     const modes = ["Disabled", ...(pin.capabilities || [])];
     const currentMode = pin.mode || "Disabled";
+
+    const modeSelect = document.createElement("select");
     modes.forEach((mode) => {
       const opt = document.createElement("option");
       opt.value = mode;
@@ -220,52 +194,6 @@ function renderPins(state) {
       modeSelect.appendChild(opt);
     });
     modeSelect.disabled = !hasKey;
-    modeWrap.append(modeLabel, modeSelect);
-    controls.appendChild(modeWrap);
-
-    // State / PWM control
-    const stateWrap = document.createElement("div");
-    const stateLabel = document.createElement("label");
-    stateLabel.textContent = "State";
-
-    const modeLower = currentMode.toLowerCase();
-    if (modeLower === "output") {
-      const btn = document.createElement("button");
-      btn.className = "primary";
-      btn.textContent = pin.state ? "Turn OFF" : "Turn ON";
-      btn.disabled = !hasKey;
-      btn.addEventListener("click", async () => {
-        const next = pin.state ? 0 : 1;
-        await updatePin(id, "Output", next);
-      });
-      stateWrap.append(stateLabel, btn);
-    } else if (modeLower === "pwm") {
-      const rangeRow = document.createElement("div");
-      rangeRow.className = "range-row";
-      const range = document.createElement("input");
-      range.type = "range";
-      range.min = "0";
-      range.max = "1023";
-      range.value = pin.state ?? 0;
-      range.disabled = !hasKey;
-      const valueLabel = document.createElement("span");
-      valueLabel.textContent = range.value;
-      range.addEventListener("input", () => {
-        valueLabel.textContent = range.value;
-      });
-      range.addEventListener("change", async () => {
-        await updatePin(id, "Pwm", Number(range.value));
-      });
-      rangeRow.append(range, valueLabel);
-      stateWrap.append(stateLabel, rangeRow);
-    } else {
-      const readOnly = document.createElement("div");
-      readOnly.className = "pill";
-      readOnly.textContent = pin.state != null ? pin.state : "—";
-      stateWrap.append(stateLabel, readOnly);
-    }
-    controls.appendChild(stateWrap);
-
     modeSelect.addEventListener("change", async () => {
       const newMode = modeSelect.value;
       if (newMode.toLowerCase() === "output") {
@@ -277,45 +205,120 @@ function renderPins(state) {
       }
     });
 
-    els.gpioList.appendChild(card);
+    const stateCell = document.createElement("div");
+    const modeLower = currentMode.toLowerCase();
+    if (modeLower === "output") {
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = pin.state ? "Turn OFF" : "Turn ON";
+      btn.disabled = !hasKey;
+      btn.addEventListener("click", async () => {
+        const next = pin.state ? 0 : 1;
+        await updatePin(id, "Output", next);
+      });
+      stateCell.appendChild(btn);
+    } else if (modeLower === "pwm") {
+      const range = document.createElement("input");
+      range.type = "range";
+      range.min = "0";
+      range.max = "1023";
+      range.value = pin.state ?? 0;
+      range.disabled = !hasKey;
+      const valueLabel = document.createElement("span");
+      valueLabel.textContent = ` ${range.value}`;
+      range.addEventListener("input", () => {
+        valueLabel.textContent = ` ${range.value}`;
+      });
+      range.addEventListener("change", async () => {
+        await updatePin(id, "Pwm", Number(range.value));
+      });
+      stateCell.append(range, valueLabel);
+    } else {
+      stateCell.textContent = pin.state != null ? pin.state : "—";
+    }
+
+    const safetyClass =
+      pin.safety === "Safe"
+        ? "pill-success"
+        : pin.safety === "Warn"
+          ? "pill-warn"
+          : "pill-danger";
+    const safetyPill = `<span class="pill ${safetyClass}">${pin.safety || "Unknown"}</span>`;
+
+    const actions = document.createElement("div");
+    actions.className = "controls";
+    const refreshBtn = document.createElement("button");
+    refreshBtn.className = "ghost";
+    refreshBtn.textContent = "Reload";
+    refreshBtn.disabled = !hasKey;
+    refreshBtn.addEventListener("click", async () => {
+      await fetchState();
+    });
+    actions.appendChild(refreshBtn);
+
+    row.innerHTML = `
+      <td>
+        <div class="table-title">${id}</div>
+        <div class="small-text">${(pin.capabilities || []).join(" · ")}</div>
+      </td>
+      <td></td>
+      <td></td>
+      <td>${safetyPill}</td>
+      <td></td>
+    `;
+
+    row.children[1].appendChild(modeSelect);
+    row.children[2].appendChild(stateCell);
+    row.children[4].appendChild(actions);
+
+    els.gpioTable.appendChild(row);
   });
 
   if (Object.keys(pins).length === 0) {
-    els.gpioList.innerHTML = "<div class='small-text'>No pins reported.</div>";
+    const empty = document.createElement("tr");
+    empty.innerHTML = `<td colspan="5" class="small-text">No pins reported.</td>`;
+    els.gpioTable.appendChild(empty);
   }
 }
 
 function renderCron(state) {
-  els.cronList.innerHTML = "";
+  els.cronTable.innerHTML = "";
   const cron = state?.cronJobs || {};
   const hasKey = hasAuthKey();
 
   Object.entries(cron).forEach(([id, job]) => {
-    const card = document.createElement("div");
-    card.className = "cron-card";
-    card.innerHTML = `
-      <div class="cron-header">
-        <div>
-          <h3>Cron #${id}</h3>
-          <div class="small-text">Spec: ${job.cron || "?"}</div>
-          <div class="small-text">Pin: ${job.pin ?? "—"} · Value: ${job.value ?? "—"}</div>
-        </div>
-        <div class="pill ${job.state === "Active" ? "pill-success" : "pill-warn"}">${job.state || "Unknown"}</div>
-      </div>
-      <div class="small-text">Action: ${job.action || "?"}</div>
-      <div class="actions">
-        <button class="danger" ${hasKey ? "" : "disabled"} data-id="${id}">Delete</button>
-      </div>
-    `;
-    const delBtn = card.querySelector("button");
-    delBtn.addEventListener("click", async () => {
+    const row = document.createElement("tr");
+    const pillClass = job.state === "Active" ? "pill-success" : "pill-warn";
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "danger";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.disabled = !hasKey;
+    deleteBtn.addEventListener("click", async () => {
       await deleteCron(id);
     });
-    els.cronList.appendChild(card);
+
+    const actionCell = document.createElement("div");
+    actionCell.className = "controls";
+    actionCell.appendChild(deleteBtn);
+
+    row.innerHTML = `
+      <td>${id}</td>
+      <td>${job.cron || "?"}</td>
+      <td>${job.action || "?"}</td>
+      <td>${job.pin ?? "—"}</td>
+      <td>${job.value ?? "—"}</td>
+      <td><span class="pill ${pillClass}">${job.state || "Unknown"}</span></td>
+      <td></td>
+    `;
+
+    row.children[6].appendChild(actionCell);
+    els.cronTable.appendChild(row);
   });
 
   if (Object.keys(cron).length === 0) {
-    els.cronList.innerHTML = "<div class='small-text'>No cron jobs configured.</div>";
+    const empty = document.createElement("tr");
+    empty.innerHTML = `<td colspan="7" class="small-text">No cron jobs configured.</td>`;
+    els.cronTable.appendChild(empty);
   }
 }
 

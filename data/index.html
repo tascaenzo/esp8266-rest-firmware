@@ -70,7 +70,9 @@
         </div>
         <p>Informazioni di rete, uptime e flag.</p>
       </div>
-      <div id="state-grid" class="info-grid"></div>
+      <table class="data-table">
+        <tbody id="state-table"></tbody>
+      </table>
       <div id="state-summary" class="summary-bar"></div>
     </section>
 
@@ -82,7 +84,20 @@
         </div>
         <p>Modalità, stato e PWM per ogni pin.</p>
       </div>
-      <div id="gpio-list" class="list"></div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Pin</th>
+              <th>Mode</th>
+              <th>State</th>
+              <th>Safety</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="gpio-table"></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="card" id="cron-section">
@@ -93,7 +108,22 @@
         </div>
         <p>Programma azioni sui pin.</p>
       </div>
-      <div id="cron-list" class="list"></div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Spec</th>
+              <th>Azione</th>
+              <th>Pin</th>
+              <th>Valore</th>
+              <th>Stato</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="cron-table"></tbody>
+        </table>
+      </div>
       <div class="divider"></div>
       <h3>Add cron job</h3>
       <div class="form-row">
