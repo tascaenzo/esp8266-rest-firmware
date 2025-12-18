@@ -204,7 +204,7 @@ function updateTopbar(device) {
   if (!ipEl || !authEl) return;
 
   const ipText = device?.ip || "—";
-  const authEnabled = !!device?.auth;
+  const authEnabled = device?.auth ?? RuntimeState.authEnabled;
 
   ipEl.textContent = ipText;
   authEl.textContent = authEnabled ? "Auth: enabled" : "Auth: disabled";

@@ -8,7 +8,12 @@
  * Settings are stored locally and do NOT affect the device directly.
  */
 
-import { getBaseUrl, setBaseUrl } from "../core/config.js";
+import {
+  getBaseUrl,
+  setBaseUrl,
+  getAuthExpected,
+  setAuthExpected,
+} from "../core/config.js";
 import {
   getAuthKey,
   setAuthKey,
@@ -16,7 +21,7 @@ import {
   isValidAuthKey,
 } from "../core/auth.js";
 import { fetchDeviceState } from "../core/api.js";
-import { clearDeviceState } from "../core/state.js";
+import { clearDeviceState, setAuthExpectation } from "../core/state.js";
 
 let container = null;
 
@@ -56,9 +61,13 @@ function bindUI() {
 function loadCurrentValues() {
   const baseUrlInput = container.querySelector("#settings-base-url");
   const authKeyInput = container.querySelector("#settings-auth-key");
+  const authToggle = container.querySelector("#settings-auth-enabled");
 
   baseUrlInput.value = getBaseUrl() || "";
   authKeyInput.value = getAuthKey() || "";
+  if (authToggle) {
+    authToggle.checked = getAuthExpected();
+  }
 }
 
 /**
@@ -69,6 +78,7 @@ function loadCurrentValues() {
 function onSave() {
   const baseUrlInput = container.querySelector("#settings-base-url");
   const authKeyInput = container.querySelector("#settings-auth-key");
+  const authToggle = container.querySelector("#settings-auth-enabled");
 
   try {
     setBaseUrl(baseUrlInput.value);
@@ -80,6 +90,11 @@ function onSave() {
       }
       setAuthKey(key);
     }
+
+    const authEnabled = !!authToggle?.checked;
+
+    setAuthExpected(authEnabled);
+    setAuthExpectation(authEnabled);
 
     clearDeviceState();
     showStatus("Settings saved", "success");
@@ -96,6 +111,8 @@ function onSave() {
 function onClear() {
   setBaseUrl("");
   clearAuthKey();
+  setAuthExpected(false);
+  setAuthExpectation(false);
   clearDeviceState();
   loadCurrentValues();
   showStatus("Local settings cleared", "success");

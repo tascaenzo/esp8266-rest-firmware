@@ -1,7 +1,10 @@
 import Router from "./core/router.js";
 import * as Settings from "./views/settings.js";
+import { getAuthExpected } from "./core/config.js";
+import { setAuthExpectation } from "./core/state.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  setAuthExpectation(getAuthExpected());
   bindNavigation();
   bindSettingsPanel();
   Router.init();

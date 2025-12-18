@@ -13,6 +13,7 @@ const STORAGE_KEY = "fwconsole.config";
  */
 const DEFAULT_CONFIG = {
   baseUrl: "",
+  authExpected: false,
 };
 
 /**
@@ -59,5 +60,28 @@ export function getBaseUrl() {
 export function setBaseUrl(url) {
   const cfg = loadConfig();
   cfg.baseUrl = url.trim().replace(/\/$/, ""); // strip trailing slash
+  saveConfig(cfg);
+}
+
+/**
+ * @brief Get whether the device is expected to have authentication enabled.
+ *
+ * This informs the console whether it should sign requests before
+ * a fresh /api/state response is available.
+ *
+ * @returns {boolean}
+ */
+export function getAuthExpected() {
+  return !!loadConfig().authExpected;
+}
+
+/**
+ * @brief Persist the expected authentication state.
+ *
+ * @param {boolean} enabled
+ */
+export function setAuthExpected(enabled) {
+  const cfg = loadConfig();
+  cfg.authExpected = !!enabled;
   saveConfig(cfg);
 }

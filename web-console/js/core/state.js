@@ -54,6 +54,19 @@ export const RuntimeState = {
 };
 
 /**
+ * @brief Set the expected authentication state.
+ *
+ * This can be invoked before any /api/state response is available
+ * (e.g. from local settings) to decide whether outgoing requests
+ * should be signed.
+ *
+ * @param {boolean} enabled
+ */
+export function setAuthExpectation(enabled) {
+  RuntimeState.authEnabled = !!enabled;
+}
+
+/**
  * @brief Update the runtime state using a new /api/state payload.
  *
  * This function should be called ONLY by core/api.js

@@ -59,25 +59,41 @@
         </header>
 
         <div class="panel-body">
-          <label>
-            Base URL
-            <input
-              id="settings-base-url"
-              type="text"
-              placeholder="http://192.168.1.50"
-            />
-            <small>Leave empty to use same origin</small>
-          </label>
+          <div class="form-stack">
+            <label class="stacked">
+              Base URL
+              <input
+                id="settings-base-url"
+                type="text"
+                placeholder="http://192.168.1.50"
+              />
+              <small>Leave empty to use same origin</small>
+            </label>
 
-          <label>
-            Authentication Key
-            <input
-              id="settings-auth-key"
-              type="text"
-              placeholder="64 hex characters"
-            />
-            <small>Optional – required only if auth is enabled</small>
-          </label>
+            <label class="stacked">
+              Authentication Key
+              <input
+                id="settings-auth-key"
+                type="text"
+                placeholder="64 hex characters"
+              />
+              <small>Optional – required only if auth is enabled</small>
+            </label>
+
+            <div class="option-row">
+              <div>
+                <div class="option-title">Device authentication</div>
+                <small>
+                  Toggle if the firmware expects HMAC signatures for all calls.
+                  The console will sign requests accordingly.
+                </small>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="settings-auth-enabled" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
           <div class="panel-actions">
             <button id="settings-save" class="btn-primary">Save</button>
 
