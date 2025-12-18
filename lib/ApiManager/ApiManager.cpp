@@ -29,6 +29,18 @@ bool apiInit() {
   api.on("/api/cron", HTTP_DELETE, handleDeleteCron);
   api.on("/api/cron/clear", HTTP_DELETE, handleClearCron);
 
+  api.onNotFound([]() {
+    ESP8266WebServer &api = apiServer();
+
+    if (api.method() == HTTP_OPTIONS) {
+      sendCorsHeaders();
+      api.send(204); // No Content
+      return;
+    }
+
+    api.send(404, "application/json", "{\"error\":\"not found\"}");
+  });
+
   return true;
 }
 

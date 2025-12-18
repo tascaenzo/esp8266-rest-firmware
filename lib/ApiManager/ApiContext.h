@@ -70,3 +70,27 @@ void sendError(const char *msg, int code = 400);
  * @return true if the request is authorized, false otherwise
  */
 bool checkAuth(const JsonDocument &doc);
+
+/**
+ * @brief Sends HTTP CORS headers for browser-based clients.
+ *
+ * This function adds the required Cross-Origin Resource Sharing (CORS)
+ * headers to the current HTTP response.
+ *
+ * It allows web applications running in a browser (HTML/JS)
+ * to access the REST API exposed by the device, even when the page
+ * is served from a different origin (e.g. local file or another host).
+ *
+ * The headers enable:
+ * - Cross-origin requests
+ * - Custom authentication headers (X-Nonce, X-Auth)
+ * - Preflight OPTIONS requests required by modern browsers
+ *
+ * This function does NOT perform authentication checks and should be
+ * called before sending any API response.
+ *
+ * Security note:
+ * CORS does not replace authentication. All protected endpoints
+ * still require valid HMAC-based authentication.
+ */
+void sendCorsHeaders();

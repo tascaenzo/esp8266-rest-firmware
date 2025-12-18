@@ -6,13 +6,25 @@ static ESP8266WebServer api(80);
 
 ESP8266WebServer &apiServer() { return api; }
 
+void sendCorsHeaders() {
+  ESP8266WebServer &api = apiServer();
+
+  api.sendHeader("Access-Control-Allow-Origin", "*");
+  api.sendHeader("Access-Control-Allow-Methods",
+                 "GET, POST, PATCH, DELETE, OPTIONS");
+  api.sendHeader("Access-Control-Allow-Headers",
+                 "Content-Type, X-Nonce, X-Auth");
+}
+
 void sendJSON(JsonDocument &doc, int statusCode) {
   String out;
   serializeJson(doc, out);
+  sendCorsHeaders();
   api.send(statusCode, "application/json", out);
 }
 
 void sendError(const char *msg, int code) {
+
   JsonDocument doc;
   doc["error"] = msg;
   sendJSON(doc, code);
