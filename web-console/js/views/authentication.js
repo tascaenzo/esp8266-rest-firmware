@@ -6,9 +6,11 @@ import { computeSignature, hasAuthKey } from "../core/auth.js";
 import { fetchNonce } from "../core/api.js";
 import { buildCurl } from "../core/curl.js";
 import { getLastResponse, RuntimeState } from "../core/state.js";
+import { showJsonModal } from "../core/modal.js";
 
 let container = null;
 let currentNonce = null;
+let latestResponse = null;
 
 export function init() {
   container = document.getElementById("auth-view");
@@ -28,6 +30,10 @@ function bindEvents() {
   refresh?.addEventListener("click", onFetchNonce);
   uriInput?.addEventListener("input", updateSignaturePreview);
   payloadInput?.addEventListener("input", updateSignaturePreview);
+
+  container?.querySelector("#auth-json-open")?.addEventListener("click", () => {
+    showJsonModal("/api/auth/challenge", latestResponse);
+  });
 }
 
 async function onFetchNonce() {
@@ -93,11 +99,12 @@ function renderCurl() {
 }
 
 function renderResponse() {
-  const pre = container?.querySelector("#auth-json");
-  if (!pre) return;
+  const hint = container?.querySelector("#auth-json-hint");
+  latestResponse = getLastResponse("GET /api/auth/challenge") || null;
 
-  const raw = getLastResponse("GET /api/auth/challenge");
-  pre.textContent = raw ? JSON.stringify(raw, null, 2) : "No challenge performed yet.";
+  if (hint) {
+    hint.textContent = latestResponse ? "Ultima risposta disponibile" : "Nessuna risposta ancora";
+  }
 }
 
 export default { init, destroy };

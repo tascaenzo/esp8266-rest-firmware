@@ -5,11 +5,16 @@
 import { fetchDeviceState, setCron, deleteCron } from "../core/api.js";
 import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
 import { buildCurl } from "../core/curl.js";
+import { showJsonModal } from "../core/modal.js";
 
 let container = null;
 const STATE_SIGNATURE = "GET /api/state";
 const UPSERT_SIGNATURE = "PATCH /api/cron/set";
 const DELETE_SIGNATURE = "DELETE /api/cron";
+let latestReadResponse = null;
+let latestUpsertResponse = null;
+let latestDeleteResponse = null;
+let latestPayload = null;
 
 export function init() {
   container = document.getElementById("cron-view");
@@ -30,6 +35,22 @@ function bindActions() {
   container
     ?.querySelectorAll(".cron-input")
     .forEach((input) => input.addEventListener("input", renderApiDocs));
+
+  container?.querySelector("#cron-read-open")?.addEventListener("click", () => {
+    showJsonModal("/api/state", latestReadResponse);
+  });
+
+  container?.querySelector("#cron-upsert-open")?.addEventListener("click", () => {
+    showJsonModal("/api/cron/set", latestUpsertResponse);
+  });
+
+  container?.querySelector("#cron-delete-open")?.addEventListener("click", () => {
+    showJsonModal("DELETE /api/cron", latestDeleteResponse);
+  });
+
+  container?.querySelector("#cron-payload-open")?.addEventListener("click", () => {
+    showJsonModal("Payload /api/cron/set", latestPayload);
+  });
 }
 
 async function refresh(force = false) {
@@ -133,7 +154,6 @@ function renderApiDocs() {
   const stateCurl = container?.querySelector("#cron-curl-state");
   const upsertCurl = container?.querySelector("#cron-curl-upsert");
   const deleteCurl = container?.querySelector("#cron-curl-delete");
-  const payloadEl = container?.querySelector("#cron-payload");
 
   if (stateCurl) {
     stateCurl.textContent = buildCurl("/api/state", "GET", null, RuntimeState.authEnabled);
@@ -148,29 +168,28 @@ function renderApiDocs() {
     deleteCurl.textContent = buildCurl(`/api/cron?id=${payload.id}`, "DELETE", null, RuntimeState.authEnabled);
   }
 
-  if (payloadEl) {
-    payloadEl.textContent = JSON.stringify(payload, null, 2);
-  }
+  latestPayload = payload;
 }
 
 function renderResponsePanels() {
-  const readPre = container?.querySelector("#cron-read-json");
-  const upsertPre = container?.querySelector("#cron-upsert-json");
-  const deletePre = container?.querySelector("#cron-delete-json");
+  const readHint = container?.querySelector("#cron-read-hint");
+  const upsertHint = container?.querySelector("#cron-upsert-hint");
+  const deleteHint = container?.querySelector("#cron-delete-hint");
 
-  if (readPre) {
-    const raw = getLastResponse(STATE_SIGNATURE);
-    readPre.textContent = raw ? JSON.stringify(raw, null, 2) : "No state response yet.";
+  latestReadResponse = getLastResponse(STATE_SIGNATURE) || null;
+  latestUpsertResponse = getLastResponse(UPSERT_SIGNATURE) || null;
+  latestDeleteResponse = getLastResponse(DELETE_SIGNATURE) || null;
+
+  if (readHint) {
+    readHint.textContent = latestReadResponse ? "Ultima risposta disponibile" : "Nessuna risposta ancora";
   }
 
-  if (upsertPre) {
-    const raw = getLastResponse(UPSERT_SIGNATURE);
-    upsertPre.textContent = raw ? JSON.stringify(raw, null, 2) : "No upsert response yet.";
+  if (upsertHint) {
+    upsertHint.textContent = latestUpsertResponse ? "Ultima risposta disponibile" : "Nessuna scrittura ancora";
   }
 
-  if (deletePre) {
-    const raw = getLastResponse(DELETE_SIGNATURE);
-    deletePre.textContent = raw ? JSON.stringify(raw, null, 2) : "No delete response yet.";
+  if (deleteHint) {
+    deleteHint.textContent = latestDeleteResponse ? "Ultima risposta disponibile" : "Nessuna cancellazione ancora";
   }
 }
 

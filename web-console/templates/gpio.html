@@ -50,10 +50,10 @@
       </div>
       <div>
         <p class="muted">Raw firmware JSON snapshot.</p>
-        <details class="response-viewer" open>
-          <summary>Show /api/state</summary>
-          <pre class="code" id="gpio-read-json"></pre>
-        </details>
+        <div class="json-launcher">
+          <button id="gpio-read-open" class="btn-tertiary">Apri risposta</button>
+          <small id="gpio-read-hint" class="muted">Nessuna risposta ancora</small>
+        </div>
       </div>
     </div>
   </section>
@@ -95,7 +95,10 @@
     <div class="api-grid">
       <div>
         <p class="muted">Payload reflects the manual form.</p>
-        <pre class="code"><code id="gpio-payload"></code></pre>
+        <div class="json-launcher">
+          <button id="gpio-payload-open" class="btn-tertiary">Apri payload</button>
+          <small class="muted">Aggiorna la form per rigenerare</small>
+        </div>
       </div>
       <div>
         <p class="muted">Copy/paste cURL matching current settings.</p>
@@ -103,10 +106,10 @@
       </div>
       <div>
         <p class="muted">Firmware JSON reply.</p>
-        <details class="response-viewer" open>
-          <summary>Show response</summary>
-          <pre class="code" id="gpio-write-json"></pre>
-        </details>
+        <div class="json-launcher">
+          <button id="gpio-write-open" class="btn-tertiary">Apri risposta</button>
+          <small id="gpio-write-hint" class="muted">Nessuna scrittura ancora</small>
+        </div>
       </div>
     </div>
   </section>

@@ -5,10 +5,14 @@
 import { fetchDeviceState, setPin } from "../core/api.js";
 import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
 import { buildCurl } from "../core/curl.js";
+import { showJsonModal } from "../core/modal.js";
 
 let container = null;
 const STATE_SIGNATURE = "GET /api/state";
 const WRITE_SIGNATURE = "PATCH /api/pin/set";
+let latestReadResponse = null;
+let latestWriteResponse = null;
+let latestPayload = null;
 
 export function init() {
   container = document.getElementById("gpio-view");
@@ -29,6 +33,18 @@ function bindActions() {
   container
     ?.querySelectorAll(".gpio-input")
     .forEach((input) => input.addEventListener("input", renderApiDocs));
+
+  container?.querySelector("#gpio-read-open")?.addEventListener("click", () => {
+    showJsonModal("/api/state", latestReadResponse);
+  });
+
+  container?.querySelector("#gpio-write-open")?.addEventListener("click", () => {
+    showJsonModal("/api/pin/set response", latestWriteResponse);
+  });
+
+  container?.querySelector("#gpio-payload-open")?.addEventListener("click", () => {
+    showJsonModal("Payload /api/pin/set", latestPayload);
+  });
 }
 
 async function refresh(force = false) {
@@ -131,7 +147,6 @@ function safetyToClass(level) {
 function renderApiDocs() {
   const readCurl = container?.querySelector("#gpio-curl-read");
   const writeCurl = container?.querySelector("#gpio-curl-write");
-  const payloadEl = container?.querySelector("#gpio-payload");
 
   if (readCurl) {
     readCurl.textContent = buildCurl("/api/state", "GET", null, RuntimeState.authEnabled);
@@ -142,23 +157,22 @@ function renderApiDocs() {
     writeCurl.textContent = buildCurl("/api/pin/set", "PATCH", payload, RuntimeState.authEnabled);
   }
 
-  if (payloadEl) {
-    payloadEl.textContent = JSON.stringify(payload, null, 2);
-  }
+  latestPayload = payload;
 }
 
 function renderResponsePanels() {
-  const readPre = container?.querySelector("#gpio-read-json");
-  const writePre = container?.querySelector("#gpio-write-json");
+  const readHint = container?.querySelector("#gpio-read-hint");
+  const writeHint = container?.querySelector("#gpio-write-hint");
 
-  if (readPre) {
-    const raw = getLastResponse(STATE_SIGNATURE);
-    readPre.textContent = raw ? JSON.stringify(raw, null, 2) : "No state response yet.";
+  latestReadResponse = getLastResponse(STATE_SIGNATURE) || null;
+  latestWriteResponse = getLastResponse(WRITE_SIGNATURE) || null;
+
+  if (readHint) {
+    readHint.textContent = latestReadResponse ? "Ultima risposta disponibile" : "Nessuna risposta ancora";
   }
 
-  if (writePre) {
-    const raw = getLastResponse(WRITE_SIGNATURE);
-    writePre.textContent = raw ? JSON.stringify(raw, null, 2) : "No write response yet.";
+  if (writeHint) {
+    writeHint.textContent = latestWriteResponse ? "Ultima risposta disponibile" : "Nessuna scrittura ancora";
   }
 }
 

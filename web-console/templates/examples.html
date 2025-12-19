@@ -26,7 +26,10 @@
     <div class="api-grid">
       <div>
         <p class="muted">Example JSON payload</p>
-        <pre class="code"><code id="examples-payload"></code></pre>
+        <div class="json-launcher">
+          <button id="examples-payload-open" class="btn-tertiary">Apri payload</button>
+          <small class="muted">Generato dal profilo corrente</small>
+        </div>
       </div>
       <div>
         <p class="muted">cURL with RuntimeState-driven auth</p>
@@ -35,10 +38,10 @@
       </div>
       <div>
         <p class="muted">Latest firmware JSON seen by console</p>
-        <details class="response-viewer" open>
-          <summary>Show response</summary>
-          <pre class="code" id="examples-json"></pre>
-        </details>
+        <div class="json-launcher">
+          <button id="examples-json-open" class="btn-tertiary">Apri risposta</button>
+          <small id="examples-json-hint" class="muted">Nessun JSON catturato</small>
+        </div>
       </div>
     </div>
   </section>

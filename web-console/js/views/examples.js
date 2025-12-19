@@ -4,8 +4,11 @@
 
 import { RuntimeState, getLastResponse } from "../core/state.js";
 import { buildCurl } from "../core/curl.js";
+import { showJsonModal } from "../core/modal.js";
 
 let container = null;
+let payloadModel = null;
+let latestResponse = null;
 
 export function init() {
   container = document.getElementById("examples-view");
@@ -15,6 +18,14 @@ export function init() {
       renderExamples();
       renderApiPanel();
     });
+
+  container?.querySelector("#examples-payload-open")?.addEventListener("click", () => {
+    showJsonModal("Payload /api/pin/set", payloadModel);
+  });
+
+  container?.querySelector("#examples-json-open")?.addEventListener("click", () => {
+    showJsonModal("Firmware JSON", latestResponse);
+  });
 
   renderExamples();
   renderApiPanel();
@@ -73,16 +84,12 @@ function renderExamples() {
 }
 
 function renderApiPanel() {
-  const payloadPreview = container?.querySelector("#examples-payload");
   const curlPreview = container?.querySelector("#examples-curl");
-  const responsePreview = container?.querySelector("#examples-json");
+  const responseHint = container?.querySelector("#examples-json-hint");
   const authBadge = container?.querySelector("#examples-auth-mode");
 
   const payload = { id: "GPIO12", mode: "Output", state: 0 };
-
-  if (payloadPreview) {
-    payloadPreview.textContent = JSON.stringify(payload, null, 2);
-  }
+  payloadModel = payload;
 
   if (curlPreview) {
     curlPreview.textContent = buildCurl("/api/pin/set", "PATCH", payload, RuntimeState.authEnabled);
@@ -94,11 +101,12 @@ function renderApiPanel() {
       : "Unsigned because auth is disabled";
   }
 
-  if (responsePreview) {
-    const raw = getLastResponse("PATCH /api/pin/set") || getLastResponse("GET /api/state");
-    responsePreview.textContent = raw
-      ? JSON.stringify(raw, null, 2)
-      : "No firmware JSON captured yet. Use the other views to trigger calls.";
+  latestResponse = getLastResponse("PATCH /api/pin/set") || getLastResponse("GET /api/state") || null;
+
+  if (responseHint) {
+    responseHint.textContent = latestResponse
+      ? "Ultima risposta disponibile"
+      : "Nessun JSON catturato";
   }
 }
 

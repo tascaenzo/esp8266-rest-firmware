@@ -82,27 +82,30 @@
       <div>
         <p class="muted">Load current jobs (GET /api/state).</p>
         <pre class="code"><code id="cron-curl-state"></code></pre>
-        <details class="response-viewer" open>
-          <summary>Latest state JSON</summary>
-          <pre class="code" id="cron-read-json"></pre>
-        </details>
+        <div class="json-launcher">
+          <button id="cron-read-open" class="btn-tertiary">Apri risposta</button>
+          <small id="cron-read-hint" class="muted">Nessuna risposta ancora</small>
+        </div>
       </div>
       <div>
         <p class="muted">Upsert payload mirrors the form above.</p>
-        <pre class="code"><code id="cron-payload"></code></pre>
+        <div class="json-launcher">
+          <button id="cron-payload-open" class="btn-tertiary">Apri payload</button>
+          <small class="muted">Allineato alla form attuale</small>
+        </div>
         <pre class="code"><code id="cron-curl-upsert"></code></pre>
-        <details class="response-viewer" open>
-          <summary>Upsert response</summary>
-          <pre class="code" id="cron-upsert-json"></pre>
-        </details>
+        <div class="json-launcher">
+          <button id="cron-upsert-open" class="btn-tertiary">Apri risposta</button>
+          <small id="cron-upsert-hint" class="muted">Nessuna scrittura ancora</small>
+        </div>
       </div>
       <div>
         <p class="muted">Deleting uses query string ?id=&lt;slot&gt;.</p>
         <pre class="code"><code id="cron-curl-delete"></code></pre>
-        <details class="response-viewer" open>
-          <summary>Delete response</summary>
-          <pre class="code" id="cron-delete-json"></pre>
-        </details>
+        <div class="json-launcher">
+          <button id="cron-delete-open" class="btn-tertiary">Apri risposta</button>
+          <small id="cron-delete-hint" class="muted">Nessuna cancellazione ancora</small>
+        </div>
       </div>
     </div>
   </section>

@@ -11,10 +11,12 @@
 import { fetchDeviceState } from "../core/api.js";
 import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
 import { buildCurl } from "../core/curl.js";
+import { showJsonModal } from "../core/modal.js";
 
 let container = null;
 let refreshBtn = null;
 const STATE_SIGNATURE = "GET /api/state";
+let latestStatePayload = null;
 
 export function init() {
   container = document.getElementById("device-state-view");
@@ -36,6 +38,10 @@ function bindEvents() {
   if (refreshBtn) {
     refreshBtn.addEventListener("click", loadState);
   }
+
+  container?.querySelector("#state-json-open")?.addEventListener("click", () => {
+    showJsonModal("/api/state response", latestStatePayload);
+  });
 }
 
 /**
@@ -128,7 +134,7 @@ function renderApiDetails(state) {
   if (!container) return;
 
   const curlEl = container.querySelector("#state-curl");
-  const responseEl = container.querySelector("#state-json");
+  const hintEl = container.querySelector("#state-json-hint");
   const metaEl = container.querySelector("#state-auth-mode");
 
   if (curlEl) {
@@ -141,11 +147,13 @@ function renderApiDetails(state) {
       : "Request sent unsigned (device reports auth disabled)";
   }
 
-  if (responseEl) {
-    const raw = getLastResponse(STATE_SIGNATURE) || state;
-    responseEl.textContent = raw
-      ? JSON.stringify(raw, null, 2)
-      : "No response captured yet.";
+  const raw = getLastResponse(STATE_SIGNATURE) || state;
+  latestStatePayload = raw || null;
+
+  if (hintEl) {
+    hintEl.textContent = raw
+      ? "Ultima risposta disponibile"
+      : "Nessuna risposta ancora";
   }
 }
 
