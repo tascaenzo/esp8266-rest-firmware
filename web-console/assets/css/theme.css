@@ -1,11 +1,13 @@
 :root {
-  --bg: #f8fafc;
+  --bg: #f6f7fb;
   --panel: #ffffff;
   --text: #0f172a;
-  --muted: #64748b;
+  --muted: #475569;
   --accent: #2563eb;
   --danger: #dc2626;
-  --border: #e2e8f0;
+  --border: #e4e7ec;
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
 
   --font-sans: system-ui, -apple-system, Segoe UI, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;

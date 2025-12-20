@@ -51,7 +51,30 @@ export const RuntimeState = {
    * @type {{ message: string, source?: string } | null}
    */
   lastError: null,
+
+  /**
+   * @brief Last successful responses keyed by "METHOD /path".
+   *
+   * Useful for exposing raw firmware JSON inside documentation views
+   * without re-fetching the endpoint.
+   *
+   * @type {Record<string, any>}
+   */
+  lastResponses: {},
 };
+
+/**
+ * @brief Set the expected authentication state.
+ *
+ * This can be invoked before any /api/state response is available
+ * (e.g. from local settings) to decide whether outgoing requests
+ * should be signed.
+ *
+ * @param {boolean} enabled
+ */
+export function setAuthExpectation(enabled) {
+  RuntimeState.authEnabled = !!enabled;
+}
 
 /**
  * @brief Update the runtime state using a new /api/state payload.
@@ -80,6 +103,7 @@ export function updateFromDeviceState(payload) {
 export function clearDeviceState() {
   RuntimeState.deviceState = null;
   RuntimeState.lastUpdateTs = null;
+  RuntimeState.lastResponses = {};
 }
 
 /**
@@ -110,4 +134,24 @@ export function isStateFresh(maxAgeMs = 2000) {
     return false;
   }
   return Date.now() - RuntimeState.lastUpdateTs <= maxAgeMs;
+}
+
+/**
+ * @brief Record the last successful response for an endpoint.
+ *
+ * @param {string} signature - e.g. "GET /api/state"
+ * @param {any} payload - Raw firmware response
+ */
+export function recordResponse(signature, payload) {
+  RuntimeState.lastResponses[signature] = payload;
+}
+
+/**
+ * @brief Retrieve the last recorded response.
+ *
+ * @param {string} signature - e.g. "GET /api/state"
+ * @returns {any}
+ */
+export function getLastResponse(signature) {
+  return RuntimeState.lastResponses[signature];
 }

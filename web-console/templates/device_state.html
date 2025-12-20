@@ -1,3 +1,105 @@
-<section class="doc">
-  <h2>device_state</h2>
+<section class="doc" id="device-state-view">
+  <header class="doc-header">
+    <div>
+      <h2>Device State</h2>
+      <p class="lead">
+        Live snapshot from <code>/api/state</code>. Use this view to confirm what the
+        firmware currently believes about its GPIO table, cron jobs and auth
+        status.
+      </p>
+    </div>
+    <div class="doc-actions">
+      <button id="state-refresh" class="btn-secondary">Refresh</button>
+    </div>
+  </header>
+
+  <div id="state-error" class="callout callout-error hidden"></div>
+
+  <section class="card surface">
+    <header>
+      <div>
+        <div class="eyebrow">Backend call</div>
+        <h3>GET /api/state</h3>
+        <small id="state-auth-mode">Auth decision mirrors runtime status</small>
+      </div>
+      <div class="pill">JSON, idempotent</div>
+    </header>
+    <div class="api-grid">
+      <div>
+        <p class="muted">Copyable cURL with live headers.</p>
+        <pre class="code"><code id="state-curl"></code></pre>
+      </div>
+      <div>
+        <p class="muted">Ultima risposta JSON del firmware.</p>
+        <div class="json-launcher">
+          <button id="state-json-open" class="btn-tertiary">Apri risposta</button>
+          <small id="state-json-hint" class="muted">Nessuna risposta ancora</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card-grid">
+    <div class="card">
+      <header>
+        <h3>Device info</h3>
+        <small>Reported by firmware</small>
+      </header>
+      <div id="device-meta"></div>
+    </div>
+
+    <div class="card">
+      <header>
+        <h3>Cache status</h3>
+        <small>Last update timestamp</small>
+      </header>
+      <p>Last update: <strong id="state-freshness">—</strong></p>
+      <p class="muted">
+        RuntimeState is reused while browsing to avoid unnecessary calls. Use
+        Refresh to re-pull.
+      </p>
+    </div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h3>GPIO table</h3>
+      <small>Modes, states and safety per pin</small>
+    </header>
+    <div class="table-wrapper">
+      <table class="data-table" id="gpio-table">
+        <thead>
+          <tr>
+            <th>Pin</th>
+            <th>Mode</th>
+            <th>State</th>
+            <th>Capabilities</th>
+            <th>Safety</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h3>Cron jobs</h3>
+      <small>Persistent schedule table</small>
+    </header>
+    <div class="table-wrapper">
+      <table class="data-table" id="cron-table">
+        <thead>
+          <tr>
+            <th>Slot</th>
+            <th>Schedule</th>
+            <th>Action</th>
+            <th>Status</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
 </section>

@@ -1,3 +1,99 @@
-<section class="doc">
-  <h2>authentication</h2>
+<section class="doc" id="auth-view">
+  <header class="doc-header">
+    <div>
+      <h2>Authentication</h2>
+      <p class="lead">
+        Nonce-based HMAC authentication. The console signs requests only when
+        the device reports <code>auth: true</code> via <code>/api/state</code>.
+      </p>
+    </div>
+    <div class="doc-actions">
+      <button id="auth-refresh" class="btn-secondary">Fetch nonce</button>
+    </div>
+  </header>
+
+  <section class="card-grid">
+    <div class="card">
+      <h3>Flow</h3>
+      <ol class="tight">
+        <li>GET <code>/api/auth/challenge</code> → returns <em>nonce</em></li>
+        <li>Compute <code>HMAC_SHA256(nonce + uri + payload, AUTH_SECRET)</code></li>
+        <li>Send request with <code>X-Nonce</code> and <code>X-Auth</code> headers</li>
+      </ol>
+      <p class="muted">
+        GET payload is an empty string. POST/PATCH payload is the raw JSON body
+        without reformatting.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Live challenge</h3>
+      <p class="muted">Uses the same bridge as real requests.</p>
+      <div class="callout" id="nonce-box">No challenge fetched yet.</div>
+    </div>
+  </section>
+
+  <section class="card surface">
+    <header>
+      <div>
+        <div class="eyebrow">Backend call</div>
+        <h3>GET /api/auth/challenge</h3>
+        <small id="auth-mode">Always public, even when auth is on</small>
+      </div>
+      <div class="pill">Challenge</div>
+    </header>
+    <div class="api-grid">
+      <div>
+        <p class="muted">Sample cURL to reproduce the nonce request.</p>
+        <pre class="code"><code id="auth-curl"></code></pre>
+      </div>
+      <div>
+        <p class="muted">Most recent firmware response.</p>
+        <div class="json-launcher">
+          <button id="auth-json-open" class="btn-tertiary">Apri JSON</button>
+          <small id="auth-json-hint" class="muted">Nessuna risposta ancora</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h3>Signature preview</h3>
+      <small>Uses stored auth key, does not transmit anything.</small>
+    </header>
+    <div class="form-grid">
+      <label>
+        URI
+        <input type="text" id="sig-uri" value="/api/state" />
+      </label>
+      <label>
+        Payload
+        <input type="text" id="sig-payload" placeholder="{} or empty for GET" />
+      </label>
+    </div>
+
+    <div class="meta">
+      <div>
+        <span class="label">Nonce</span>
+        <span id="sig-nonce" class="mono">—</span>
+      </div>
+      <div>
+        <span class="label">Signature</span>
+        <span id="sig-value" class="mono">No key</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h3>Error reference</h3>
+      <small>Returned by the firmware</small>
+    </header>
+    <ul class="tight">
+      <li><code>401 unauthorized</code> → missing/invalid headers or expired nonce</li>
+      <li><code>400 bad request</code> → malformed JSON payload</li>
+      <li><code>403 forbidden</code> → action blocked by safety rules</li>
+    </ul>
+  </section>
 </section>

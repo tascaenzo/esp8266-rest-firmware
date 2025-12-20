@@ -10,7 +10,18 @@ body {
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  background: var(--panel);
+  background: linear-gradient(90deg, #0f172a, #1e293b 40%, #0f172a);
+  color: #e2e8f0;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+.topbar h1 {
+  margin: 0;
+  color: #e2e8f0;
+}
+
+.topbar .subtitle {
+  color: rgba(226, 232, 240, 0.8);
 }
 
 .app-layout {
@@ -21,7 +32,7 @@ body {
 
 .sidebar {
   border-right: 1px solid var(--border);
-  background: var(--panel);
+  background: linear-gradient(180deg, #ffffff, #f1f5f9);
 }
 
 .sidebar ul {
@@ -33,7 +44,7 @@ body {
 .sidebar li {
   padding: 12px 16px;
   cursor: pointer;
-  color: var(--muted);
+  color: #475569;
 }
 
 .sidebar li.active {
@@ -43,5 +54,5 @@ body {
 }
 
 .content {
-  padding: 24px;
+  padding: 28px;
 }

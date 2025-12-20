@@ -16,6 +16,7 @@ import {
   updateFromDeviceState,
   setLastError,
   clearDeviceState,
+  recordResponse,
 } from "./state.js";
 
 /**
@@ -44,7 +45,24 @@ async function requestNonce() {
   }
 
   const data = await res.json();
+  recordResponse("GET /api/auth/challenge", data);
   return String(data.nonce);
+}
+
+/**
+ * @brief Public wrapper to fetch a fresh nonce.
+ *
+ * Exposed for documentation and live authentication previews.
+ *
+ * @returns {Promise<string>} Nonce value
+ */
+export async function fetchNonce() {
+  try {
+    return await requestNonce();
+  } catch (err) {
+    setLastError(err.message, "GET /api/auth/challenge");
+    throw err;
+  }
 }
 
 /**
@@ -103,6 +121,14 @@ async function apiFetch(path, opts = {}) {
   if (!res.ok) {
     const msg = typeof data === "string" ? data : JSON.stringify(data);
     throw new Error(`HTTP ${res.status}: ${msg}`);
+  }
+
+  const signature = `${method.toUpperCase()} ${path}`;
+  recordResponse(signature, data);
+
+  const barePath = path.split("?")[0];
+  if (barePath !== path) {
+    recordResponse(`${method.toUpperCase()} ${barePath}`, data);
   }
 
   return data;
@@ -179,11 +205,12 @@ export async function applySetup(payload) {
  */
 export async function setPin(payload) {
   try {
-    await apiFetch("/api/pin/set", {
+    const data = await apiFetch("/api/pin/set", {
       method: "PATCH",
       body: payload,
       preferAuth: true,
     });
+    return data;
   } catch (err) {
     setLastError(err.message, "PATCH /api/pin/set");
     throw err;
@@ -199,11 +226,12 @@ export async function setPin(payload) {
  */
 export async function setCron(payload) {
   try {
-    await apiFetch("/api/cron/set", {
+    const data = await apiFetch("/api/cron/set", {
       method: "PATCH",
       body: payload,
       preferAuth: true,
     });
+    return data;
   } catch (err) {
     setLastError(err.message, "PATCH /api/cron/set");
     throw err;
@@ -219,10 +247,11 @@ export async function setCron(payload) {
  */
 export async function deleteCron(id) {
   try {
-    await apiFetch(`/api/cron?id=${encodeURIComponent(id)}`, {
+    const data = await apiFetch(`/api/cron?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
       preferAuth: true,
     });
+    return data;
   } catch (err) {
     setLastError(err.message, "DELETE /api/cron");
     throw err;
@@ -236,10 +265,11 @@ export async function deleteCron(id) {
  */
 export async function rebootDevice() {
   try {
-    await apiFetch("/api/reboot", {
+    const data = await apiFetch("/api/reboot", {
       method: "POST",
       preferAuth: true,
     });
+    return data;
   } catch (err) {
     setLastError(err.message, "POST /api/reboot");
     throw err;
