@@ -22,6 +22,7 @@ import {
 } from "../core/auth.js";
 import { fetchDeviceState } from "../core/api.js";
 import { clearDeviceState, setAuthExpectation } from "../core/state.js";
+import { showToast } from "../core/toast.js";
 
 let container = null;
 
@@ -98,8 +99,10 @@ function onSave() {
 
     clearDeviceState();
     showStatus("Settings saved", "success");
+    showToast("Impostazioni salvate", "success");
   } catch (err) {
     showStatus(err.message, "error");
+    showToast(err.message, "error");
   }
 }
 
@@ -129,8 +132,10 @@ async function onTestConnection() {
   try {
     await fetchDeviceState();
     showStatus("Connection successful", "success");
+    showToast("Connessione al firmware riuscita", "success");
   } catch (err) {
     showStatus(`Connection failed: ${err.message}`, "error");
+    showToast(`Connessione fallita: ${err.message}`, "error");
   }
 }
 

@@ -12,6 +12,7 @@ import { fetchDeviceState } from "../core/api.js";
 import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
 import { buildCurl } from "../core/curl.js";
 import { showJsonModal } from "../core/modal.js";
+import { showToast } from "../core/toast.js";
 
 let container = null;
 let refreshBtn = null;
@@ -70,6 +71,7 @@ async function loadState() {
     renderApiDetails(RuntimeState.deviceState);
   } catch (err) {
     renderError(err.message);
+    showToast(`Impossibile aggiornare lo stato: ${err.message}`, "error");
     renderApiDetails(RuntimeState.deviceState);
   } finally {
     setBusy(false);

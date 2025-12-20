@@ -6,6 +6,7 @@ import { fetchDeviceState, setCron, deleteCron } from "../core/api.js";
 import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
 import { buildCurl } from "../core/curl.js";
 import { showJsonModal } from "../core/modal.js";
+import { showToast } from "../core/toast.js";
 
 let container = null;
 const STATE_SIGNATURE = "GET /api/state";
@@ -64,6 +65,7 @@ async function refresh(force = false) {
     renderResponsePanels();
   } catch (err) {
     renderStatus(`Failed to load jobs: ${err.message}`, true);
+    showToast(`Cron non disponibile: ${err.message}`, "error");
   }
 }
 
@@ -128,6 +130,7 @@ async function onApply() {
     refresh(true);
   } catch (err) {
     renderStatus(err.message, true);
+    showToast(`Errore durante il salvataggio: ${err.message}`, "error");
   }
 }
 
@@ -140,6 +143,7 @@ async function onDelete(slot) {
     refresh(true);
   } catch (err) {
     renderStatus(err.message, true);
+    showToast(`Impossibile cancellare: ${err.message}`, "error");
   }
 }
 

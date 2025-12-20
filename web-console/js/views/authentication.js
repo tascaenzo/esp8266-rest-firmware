@@ -7,6 +7,7 @@ import { fetchNonce } from "../core/api.js";
 import { buildCurl } from "../core/curl.js";
 import { getLastResponse, RuntimeState } from "../core/state.js";
 import { showJsonModal } from "../core/modal.js";
+import { showToast } from "../core/toast.js";
 
 let container = null;
 let currentNonce = null;
@@ -51,6 +52,7 @@ async function onFetchNonce() {
   } catch (err) {
     box.textContent = `Challenge failed: ${err.message}`;
     box.classList.add("callout-error");
+    showToast(`Challenge fallita: ${err.message}`, "error");
   }
 }
 

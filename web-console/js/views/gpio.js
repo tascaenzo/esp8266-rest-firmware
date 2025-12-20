@@ -6,6 +6,7 @@ import { fetchDeviceState, setPin } from "../core/api.js";
 import { RuntimeState, isStateFresh, getLastResponse } from "../core/state.js";
 import { buildCurl } from "../core/curl.js";
 import { showJsonModal } from "../core/modal.js";
+import { showToast } from "../core/toast.js";
 
 let container = null;
 const STATE_SIGNATURE = "GET /api/state";
@@ -59,6 +60,7 @@ async function refresh(force = false) {
     renderApiDocs();
   } catch (err) {
     renderStatus(`Failed to load pins: ${err.message}`, true);
+    showToast(`GPIO non disponibili: ${err.message}`, "error");
   }
 }
 
@@ -121,6 +123,7 @@ async function onManualWrite() {
     refresh(true);
   } catch (err) {
     renderStatus(err.message, true);
+    showToast(`Errore pin: ${err.message}`, "error");
   }
 }
 

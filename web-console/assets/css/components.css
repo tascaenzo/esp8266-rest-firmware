@@ -488,3 +488,46 @@ body.modal-open {
   gap: 8px;
   margin-top: 6px;
 }
+
+/* ===========================
+   Toast notifications
+   =========================== */
+
+#toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1600;
+  pointer-events: none;
+}
+
+.toast {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  min-width: 240px;
+  max-width: 360px;
+  pointer-events: auto;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.toast-info {
+  background: linear-gradient(90deg, #0f172a, #111827);
+}
+
+.toast-success {
+  background: linear-gradient(90deg, #14532d, #166534);
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.toast-error {
+  background: linear-gradient(90deg, #450a0a, #7f1d1d);
+  border-color: rgba(248, 113, 113, 0.35);
+}

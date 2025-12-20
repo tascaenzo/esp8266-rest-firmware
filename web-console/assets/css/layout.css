@@ -56,3 +56,24 @@ body {
 .content {
   padding: 28px;
 }
+
+@media (max-width: 1024px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar ul {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .sidebar li {
+    flex: 1;
+    white-space: nowrap;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+}
