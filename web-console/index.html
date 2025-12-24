@@ -5,93 +5,222 @@
     <title>ESP8266 Firmware Console</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="assets/css/theme.css" />
-    <link rel="stylesheet" href="assets/css/layout.css" />
-    <link rel="stylesheet" href="assets/css/docs.css" />
-    <link rel="stylesheet" href="assets/css/components.css" />
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              bg: "#ffffff",
+              border: "#e5e7eb",
+              primary: "#16a34a",
+              muted: "#6b7280",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+              mono: ["ui-monospace", "SFMono-Regular"],
+            },
+          },
+        },
+      };
+    </script>
   </head>
 
-  <body>
-    <!-- Header -->
-    <header class="topbar">
-      <div class="title">
-        <h1>ESP8266 Firmware Console</h1>
-        <span class="subtitle"> Interactive REST API Explorer & Debugger </span>
-      </div>
+  <body class="bg-bg text-gray-900 h-screen overflow-hidden font-sans">
+    <div class="flex h-full">
+      <!-- MOBILE OVERLAY -->
+      <div
+        id="overlay"
+        class="fixed inset-0 bg-black/30 z-30 hidden lg:hidden"
+        onclick="toggleMenu()"
+      ></div>
 
-      <div class="status">
-        <span class="badge" id="device-ip">—</span>
-        <span class="badge badge-warn" id="auth-status">Auth: disabled</span>
+      <!-- SIDEBAR -->
+      <aside
+        id="sidebar"
+        class="fixed lg:static z-40 h-full w-64 bg-white border-r border-border transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col"
+      >
+        <!-- Sidebar header -->
+        <div class="p-6 pl-6">
+          <h1 class="text-lg font-semibold text-primary">ESP8266</h1>
+          <p class="text-xs text-muted">Firmware Console</p>
+        </div>
 
-        <button id="open-settings" class="icon-button" title="Settings">
-          ⚙
-        </button>
-      </div>
-    </header>
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 mt-2 space-y-0.5">
+          <button
+            data-view="overview"
+            class="group w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-primary transition"
+            ></span>
+            Overview
+          </button>
 
-    <!-- Main layout -->
-    <div class="app-layout">
-      <!-- Sidebar -->
-      <nav class="sidebar">
-        <ul>
-          <li data-view="overview" class="active">Overview</li>
-          <li data-view="authentication">Authentication</li>
-          <li data-view="setup">Setup</li>
-          <li data-view="device_state">Device State</li>
-          <li data-view="gpio">GPIO API</li>
-          <li data-view="cron">Cron Scheduler</li>
-          <li data-view="examples">Curl Examples</li>
-        </ul>
-      </nav>
+          <button
+            data-view="authentication"
+            class="group w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-primary transition"
+            ></span>
+            Authentication
+          </button>
 
-      <!-- Content -->
-      <main class="content" id="view-container">
-        <!-- templates injected here -->
-      </main>
-    </div>
+          <button
+            data-view="setup"
+            class="group w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-primary transition"
+            ></span>
+            Setup
+          </button>
 
-    <!-- Settings Panel (Client-side configuration) -->
-    <div id="settings-overlay" class="overlay hidden">
-      <div id="settings-panel" class="panel">
-        <header class="panel-header">
-          <h2>Connection Settings</h2>
-          <button id="close-settings" class="icon-button">✕</button>
-        </header>
+          <button
+            data-view="gpio"
+            class="group w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-primary transition"
+            ></span>
+            GPIO
+          </button>
 
-        <div class="panel-body">
-          <label>
-            Base URL
-            <input
-              id="settings-base-url"
-              type="text"
-              placeholder="http://192.168.1.50"
-            />
-            <small>Leave empty to use same origin</small>
-          </label>
+          <button
+            data-view="cron"
+            class="group w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-primary transition"
+            ></span>
+            Cron
+          </button>
+        </nav>
 
-          <label>
-            Authentication Key
-            <input
-              id="settings-auth-key"
-              type="text"
-              placeholder="64 hex characters"
-            />
-            <small>Optional – required only if auth is enabled</small>
-          </label>
-          <div class="panel-actions">
-            <button id="settings-save" class="btn-primary">Save</button>
+        <!-- Status -->
+        <div class="p-4 border-t border-border text-xs text-muted">
+          Status:
+          <span class="text-primary font-medium">CONNECTED</span>
+        </div>
+      </aside>
 
-            <button id="settings-test" class="btn-secondary">
-              Test connection
-            </button>
+      <!-- MAIN AREA -->
+      <div class="flex-1 flex flex-col h-full overflow-hidden">
+        <!-- SCROLLABLE CONTENT -->
+        <div class="flex-1 overflow-auto relative">
+          <!-- PROTOCOL-LIKE BACKGROUND (TOP ONLY) -->
+          <div
+            class="absolute top-0 left-0 right-0 h-[360px] -z-10 overflow-hidden"
+          >
+            <!-- Green glow -->
+            <div
+              class="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-emerald-200/60 via-green-100/40 to-transparent blur-3xl"
+            ></div>
 
-            <button id="settings-clear" class="btn-danger">Clear</button>
+            <div
+              class="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-gradient-to-bl from-green-200/40 via-emerald-100/30 to-transparent blur-3xl"
+            ></div>
+
+            <!-- SVG grid -->
+            <svg
+              class="absolute inset-0 w-full h-full"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <pattern
+                  id="protocol-grid"
+                  width="72"
+                  height="72"
+                  patternUnits="userSpaceOnUse"
+                  patternTransform="rotate(12)"
+                >
+                  <path
+                    d="M 72 0 L 0 0 0 72"
+                    fill="none"
+                    stroke="rgba(22,163,74,0.14)"
+                    stroke-width="1"
+                  />
+                </pattern>
+
+                <linearGradient id="grid-fade" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="white" stop-opacity="1" />
+                  <stop offset="40%" stop-color="white" stop-opacity="0.8" />
+                  <stop offset="65%" stop-color="white" stop-opacity="0.2" />
+                  <stop offset="80%" stop-color="white" stop-opacity="0" />
+                </linearGradient>
+
+                <mask id="fade-mask">
+                  <rect width="100%" height="100%" fill="url(#grid-fade)" />
+                </mask>
+              </defs>
+
+              <rect
+                width="100%"
+                height="100%"
+                fill="url(#protocol-grid)"
+                mask="url(#fade-mask)"
+              />
+            </svg>
+
+            <div
+              class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white"
+            ></div>
           </div>
 
-          <div id="settings-status" class="status"></div>
+          <!-- HEADER -->
+          <div
+            class="sticky top-0 z-20 px-6 py-4 border-b border-border bg-white/70 backdrop-blur-lg"
+          >
+            <header class="flex items-center gap-4">
+              <button
+                onclick="toggleMenu()"
+                class="lg:hidden p-2 rounded hover:bg-gray-100"
+                aria-label="Open menu"
+              >
+                ☰
+              </button>
+
+              <div class="flex-1">
+                <h2 class="text-xl font-semibold">Firmware Console</h2>
+                <p class="text-muted text-sm hidden sm:block">
+                  Monitor and manage your ESP8266 device
+                </p>
+              </div>
+
+              <button
+                id="open-settings"
+                class="p-2 rounded hover:bg-gray-100"
+                title="Settings"
+                aria-label="Settings"
+              >
+                ⚙️
+              </button>
+            </header>
+          </div>
+
+          <!-- PAGE CONTENT -->
+          <main class="p-8">
+            <div class="mx-auto max-w-4xl" id="view-container">
+              <!-- templates injected here -->
+            </div>
+          </main>
         </div>
       </div>
     </div>
+
+    <script>
+      function toggleMenu() {
+        document
+          .getElementById("sidebar")
+          .classList.toggle("-translate-x-full");
+        document.getElementById("overlay").classList.toggle("hidden");
+      }
+    </script>
 
     <script type="module" src="js/app.js"></script>
   </body>

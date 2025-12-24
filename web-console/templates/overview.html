@@ -1,29 +1,131 @@
-<section class="doc">
-  <h2>ESP8266 GPIO Automation Firmware</h2>
+<section class="doc max-w-3xl space-y-8">
+  <!-- TITLE -->
+  <header>
+    <h2 class="text-2xl font-semibold mb-2">
+      ESP8266 GPIO Automation Firmware
+    </h2>
 
-  <p class="lead">
-    Secure, deterministic REST firmware for ESP8266-based devices.
-  </p>
+    <p class="lead text-gray-700">
+      Secure, deterministic REST firmware for ESP8266-based devices.
+    </p>
+  </header>
 
-  <p>
-    This firmware exposes a JSON-based REST API to control GPIOs, schedule
-    actions and inspect device state, while remaining suitable for low-memory
-    embedded environments.
-  </p>
+  <hr class="border-border" />
 
-  <h3>Design Goals</h3>
-  <ul>
-    <li>Predictable behavior</li>
-    <li>Replay-safe authentication</li>
-    <li>No TLS required</li>
-    <li>Bounded memory usage</li>
-  </ul>
+  <!-- INTRO -->
+  <section>
+    <p class="mb-4">
+      This project provides a lightweight and deterministic automation firmware
+      designed specifically for ESP8266-based boards such as ESP-01, ESP-12,
+      NodeMCU, and Wemos D1 Mini.
+    </p>
 
-  <h3>What you can do here</h3>
-  <ul>
-    <li>Inspect live device state</li>
-    <li>Experiment with authenticated API calls</li>
-    <li>Study request signing and payload rules</li>
-    <li>Debug GPIO and cron behavior</li>
-  </ul>
+    <p>
+      The firmware exposes a JSON-based REST API that allows external clients to
+      configure GPIOs, schedule actions, inspect device state, and manage
+      system-level settings.
+      <br />
+      Special care has been taken to ensure that all operations remain suitable
+      for <strong>low-memory embedded environments</strong>, avoiding dynamic
+      allocation patterns and unpredictable execution paths.
+    </p>
+  </section>
+
+  <hr class="border-border" />
+
+  <!-- DESIGN GOALS -->
+  <section>
+    <h3 class="text-lg font-medium mb-2">Design Goals</h3>
+
+    <p class="mb-3">
+      The firmware is built around a small set of strict design principles.
+      These constraints guide both the internal architecture and the exposed API
+      surface.
+    </p>
+
+    <ul class="list-disc pl-5 space-y-1">
+      <li>Predictable and deterministic runtime behavior</li>
+      <li>Bounded memory usage with no unbounded heap growth</li>
+      <li>Stateless REST API suitable for automation systems</li>
+      <li>Replay-safe authentication without TLS overhead</li>
+      <li>Persistent configuration with automatic restore on reboot</li>
+    </ul>
+  </section>
+
+  <hr class="border-border" />
+
+  <!-- SECURITY -->
+  <section>
+    <h3 class="text-lg font-medium mb-2">Security Model</h3>
+
+    <p class="mb-3">
+      To avoid the complexity and memory overhead of TLS, the firmware
+      implements an optional authentication layer based on a nonce-driven HMAC
+      mechanism.
+    </p>
+
+    <p>
+      Each authenticated request is signed using a one-time nonce and a shared
+      secret stored securely on the device. Nonces are single-use, time-limited,
+      and bound to the client IP address, making replay attacks infeasible even
+      on unencrypted networks.
+    </p>
+  </section>
+
+  <hr class="border-border" />
+
+  <!-- DEVICE OVERVIEW -->
+  <section>
+    <h3 class="text-lg font-medium mb-2">Connected Device Overview</h3>
+
+    <p class="mb-4">
+      When a device is connected, the console retrieves and displays live
+      information directly from the firmware. This provides immediate visibility
+      into the current system state and runtime conditions.
+    </p>
+
+    <!-- DEVICE INFO PLACEHOLDER -->
+    <div
+      class="border border-border rounded-lg bg-white p-4 text-sm space-y-2"
+      id="device-overview"
+    >
+      <p class="text-gray-500">No device data available.</p>
+      <p class="text-gray-500">
+        Connect to a device to view live status information.
+      </p>
+    </div>
+
+    <!--
+      This section is intended to be populated dynamically via /api/state.
+      Example fields:
+        - Device type
+        - IP address
+        - RSSI
+        - Uptime
+        - Authentication state
+        - Serial debug flag
+    -->
+  </section>
+
+  <hr class="border-border" />
+
+  <!-- CONSOLE PURPOSE -->
+  <section>
+    <h3 class="text-lg font-medium mb-2">What You Can Do in This Console</h3>
+
+    <p class="mb-3">
+      This web console is designed as a companion tool for developers and system
+      integrators working with the firmware. It is not intended as a generic
+      end-user interface, but as a technical inspection and experimentation
+      environment.
+    </p>
+
+    <ul class="list-disc pl-5 space-y-1">
+      <li>Inspect the live state of the device and all GPIOs</li>
+      <li>Explore authenticated and unauthenticated API behavior</li>
+      <li>Study request signing and payload rules</li>
+      <li>Debug GPIO modes, safety levels, and cron execution</li>
+      <li>Configure system-level settings and authentication</li>
+    </ul>
+  </section>
 </section>

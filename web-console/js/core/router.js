@@ -1,14 +1,3 @@
-/**
- * @brief Simple hash-based router for the Firmware Console.
- *
- * This router is responsible for:
- *  - mapping URL hash fragments to HTML templates
- *  - loading documentation views dynamically
- *  - initializing and tearing down optional view-specific logic
- *
- * It is intentionally minimal and framework-free, to mirror
- * the embedded firmware philosophy.
- */
 const Router = (() => {
   /**
    * @brief Reference to the currently active view controller.

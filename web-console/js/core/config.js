@@ -1,7 +1,8 @@
 /**
  * @brief Runtime configuration for the Firmware Console.
  *
- * Stores user-defined settings such as the target device base URL.
+ * Stores user-defined settings such as the target device base URL
+ * and optional API authentication parameters.
  *
  * Configuration is persisted locally using localStorage.
  */
@@ -13,12 +14,17 @@ const STORAGE_KEY = "fwconsole.config";
  */
 const DEFAULT_CONFIG = {
   baseUrl: "",
+  authEnabled: false,
+  apiKey: "",
 };
 
 /**
  * @brief Load configuration from localStorage.
  *
- * @returns {{ baseUrl: string }}
+ * Always merges with DEFAULT_CONFIG to guarantee
+ * backward compatibility when new fields are added.
+ *
+ * @returns {{ baseUrl: string, authEnabled: boolean, apiKey: string }}
  */
 function loadConfig() {
   try {
@@ -59,5 +65,51 @@ export function getBaseUrl() {
 export function setBaseUrl(url) {
   const cfg = loadConfig();
   cfg.baseUrl = url.trim().replace(/\/$/, ""); // strip trailing slash
+  saveConfig(cfg);
+}
+
+/**
+ * @brief Check whether API authentication is enabled.
+ *
+ * @returns {boolean}
+ */
+export function isAuthEnabled() {
+  return loadConfig().authEnabled;
+}
+
+/**
+ * @brief Enable or disable API authentication.
+ *
+ * @param {boolean} enabled
+ */
+export function setAuthEnabled(enabled) {
+  const cfg = loadConfig();
+  cfg.authEnabled = Boolean(enabled);
+
+  // Optional safety: clear API key when disabling auth
+  if (!cfg.authEnabled) {
+    cfg.apiKey = "";
+  }
+
+  saveConfig(cfg);
+}
+
+/**
+ * @brief Get the configured API key.
+ *
+ * @returns {string}
+ */
+export function getApiKey() {
+  return loadConfig().apiKey;
+}
+
+/**
+ * @brief Set the API key used for authentication.
+ *
+ * @param {string} key
+ */
+export function setApiKey(key) {
+  const cfg = loadConfig();
+  cfg.apiKey = key.trim();
   saveConfig(cfg);
 }
